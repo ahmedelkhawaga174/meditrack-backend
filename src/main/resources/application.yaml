@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: meditrack-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/meditrack
+    username: postgres
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
