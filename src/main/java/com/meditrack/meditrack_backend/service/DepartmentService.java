@@ -5,6 +5,9 @@ import com.meditrack.meditrack_backend.repositories.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class DepartmentService {
@@ -22,4 +25,11 @@ public class DepartmentService {
         return departmentRepository.save(department);
     }
 
+    public List<String> getDepartments() {
+
+        return departmentRepository.findAll().stream()
+                .map(Department::getName)
+                .distinct()
+                .toList();
+    }
 }
