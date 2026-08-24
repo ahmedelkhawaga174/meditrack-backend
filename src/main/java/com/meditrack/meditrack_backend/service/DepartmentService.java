@@ -5,8 +5,6 @@ import com.meditrack.meditrack_backend.repositories.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class DepartmentService {
@@ -14,6 +12,10 @@ public class DepartmentService {
     private final DepartmentRepository departmentRepository;
 
     public Department createDepartment(String name) {
+
+        departmentRepository.findByName(name).ifPresent(d -> {
+            throw new RuntimeException("Department with name '" + name + "' already exists!");
+        });
 
         Department department = Department.builder().name(name).build();
 

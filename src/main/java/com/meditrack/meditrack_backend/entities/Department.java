@@ -1,5 +1,6 @@
 package com.meditrack.meditrack_backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,5 +23,6 @@ public class Department {
     private String name;
 
     @OneToMany(mappedBy = "department")
+    @JsonIgnore
     private List<Doctor> doctors;
 }
