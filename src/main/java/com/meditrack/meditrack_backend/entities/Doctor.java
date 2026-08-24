@@ -26,10 +26,8 @@ public class Doctor {
     private Department department;
 
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL)
-    private List<DoctorAvailabilitie> availabilities;
+    private List<DoctorAvailability> availabilities;
 
     @OneToMany(mappedBy = "doctor")
     private List<Appointment> appointments;
-
-
 }
