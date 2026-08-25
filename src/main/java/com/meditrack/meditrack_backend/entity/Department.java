@@ -1,6 +1,7 @@
 package com.meditrack.meditrack_backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -35,4 +36,11 @@ public class Department {
     @OneToMany(mappedBy = "department")
     @JsonIgnore
     private List<Doctor> doctors;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.isActive == null) {
+            this.isActive = true;
+        }
+    }
 }
