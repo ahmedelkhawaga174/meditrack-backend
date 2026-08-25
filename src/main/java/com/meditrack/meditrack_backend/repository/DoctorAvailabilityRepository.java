@@ -1,13 +1,13 @@
 package com.meditrack.meditrack_backend.repository;
 
+import com.meditrack.meditrack_backend.entities.AvailabilitySlot;
 import com.meditrack.meditrack_backend.entities.Doctor;
-import com.meditrack.meditrack_backend.entities.DoctorAvailability;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.DayOfWeek;
 import java.util.List;
 
-public interface DoctorAvailabilityRepository extends JpaRepository<DoctorAvailability, Long> {
+public interface DoctorAvailabilityRepository extends JpaRepository<AvailabilitySlot, Long> {
 
-    List<DoctorAvailability> findByDoctorAndDayOfWeek(Doctor doctor, DayOfWeek dayOfWeek);
+    List<AvailabilitySlot> findByDoctorAndDayOfWeek(Doctor doctor, DayOfWeek dayOfWeek);
 }

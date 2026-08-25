@@ -7,6 +7,8 @@ import com.meditrack.meditrack_backend.repository.DoctorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class DoctorService {
@@ -14,7 +16,7 @@ public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final DepartmentRepository departmentRepository;
 
-    public Doctor createDoctor(Doctor doctor, Long departmentId) {
+    public Doctor createDoctor(Doctor doctor, UUID departmentId) {
 
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new RuntimeException("Department not found with id: " + departmentId));
