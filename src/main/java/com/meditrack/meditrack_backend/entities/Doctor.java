@@ -1,36 +1,49 @@
 package com.meditrack.meditrack_backend.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "doctors")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Doctor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @Column(nullable = false)
-    private String name;
+    @OneToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "department_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "department_id", nullable = false)
+    @JsonIgnoreProperties("doctors")
     private Department department;
 
-    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<DoctorAvailability> availabilities;
+    @Column(name = "first_name", nullable = false, length = 50)
+    private String firstName;
 
-    @OneToMany(mappedBy = "doctor")
-    @JsonIgnore
-    private List<Appointment> appointments;
+    @Column(name = "last_name", nullable = false, length = 50)
+    private String lastName;
+
+    @Column(length = 500)
+    private String bio;
+
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL)
+    private List<AvailabilitySlot> availabilitySlots;
 }
