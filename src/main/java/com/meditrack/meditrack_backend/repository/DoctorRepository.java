@@ -1,4 +1,4 @@
-package com.meditrack.meditrack_backend.repositories;
+package com.meditrack.meditrack_backend.repository;
 
 import com.meditrack.meditrack_backend.entities.Department;
 import com.meditrack.meditrack_backend.entities.Doctor;

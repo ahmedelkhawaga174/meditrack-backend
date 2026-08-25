@@ -2,11 +2,10 @@ package com.meditrack.meditrack_backend.service;
 
 import com.meditrack.meditrack_backend.entities.Department;
 import com.meditrack.meditrack_backend.entities.Doctor;
-import com.meditrack.meditrack_backend.repositories.DepartmentRepository;
-import com.meditrack.meditrack_backend.repositories.DoctorRepository;
+import com.meditrack.meditrack_backend.repository.DepartmentRepository;
+import com.meditrack.meditrack_backend.repository.DoctorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 
 @Service
 @RequiredArgsConstructor
