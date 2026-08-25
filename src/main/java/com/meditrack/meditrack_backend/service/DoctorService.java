@@ -8,6 +8,7 @@ import com.meditrack.meditrack_backend.repository.DoctorRepository;
 import com.meditrack.meditrack_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,34 +18,33 @@ import java.util.UUID;
 public class DoctorService {
 
     private final DoctorRepository doctorRepository;
-    private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
+    private final DepartmentRepository departmentRepository;
 
-    public Doctor createDoctor(Doctor doctor, UUID userId, UUID departmentId) {
+    @Transactional
+    public Doctor createDoctor(Doctor doctor) {
+        if (doctor.getUser() == null || doctor.getUser().getId() == null) {
+            throw new IllegalArgumentException("User ID must be provided!");
+        }
+        UUID userId = doctor.getUser().getId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
-        Department department = departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new RuntimeException("Department not found with id: " + departmentId));
-
-        doctorRepository.findByUserId(userId).ifPresent(d -> {
-            throw new RuntimeException("User is already linked to another doctor profile!");
-        });
+        if (doctor.getDepartment() == null || doctor.getDepartment().getId() == null) {
+            throw new IllegalArgumentException("Department ID must be provided!");
+        }
+        UUID deptId = doctor.getDepartment().getId();
+        Department department = departmentRepository.findById(deptId)
+                .orElseThrow(() -> new RuntimeException("Department not found with id: " + deptId));
 
         doctor.setUser(user);
         doctor.setDepartment(department);
+
         return doctorRepository.save(doctor);
     }
 
     public List<Doctor> getAllDoctors() {
         return doctorRepository.findAll();
-    }
-
-    public List<Doctor> getDoctorsByDepartment(UUID departmentId) {
-        if (!departmentRepository.existsById(departmentId)) {
-            throw new RuntimeException("Department not found with id: " + departmentId);
-        }
-        return doctorRepository.findByDepartmentIdAndIsActiveTrue(departmentId);
     }
 
     public Doctor getDoctorById(UUID id) {

@@ -19,22 +19,14 @@ public class DoctorController {
     private final DoctorService doctorService;
 
     @PostMapping
-    public ResponseEntity<Doctor> createDoctor(
-            @RequestBody Doctor doctor,
-            @RequestParam UUID userId,
-            @RequestParam UUID departmentId) {
+    public ResponseEntity<Doctor> createDoctor(@RequestBody Doctor doctor) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(doctorService.createDoctor(doctor, userId, departmentId));
+                .body(doctorService.createDoctor(doctor));
     }
 
     @GetMapping
     public ResponseEntity<List<Doctor>> getAllDoctors() {
         return ResponseEntity.ok(doctorService.getAllDoctors());
-    }
-
-    @GetMapping("/department/{departmentId}")
-    public ResponseEntity<List<Doctor>> getDoctorsByDepartment(@PathVariable UUID departmentId) {
-        return ResponseEntity.ok(doctorService.getDoctorsByDepartment(departmentId));
     }
 
     @GetMapping("/{id}")

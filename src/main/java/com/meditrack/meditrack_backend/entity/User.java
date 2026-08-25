@@ -1,5 +1,6 @@
 package com.meditrack.meditrack_backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.meditrack.meditrack_backend.enums.UserRole;
 import com.meditrack.meditrack_backend.enums.UserStatus;
 import jakarta.persistence.*;
@@ -22,6 +23,7 @@ public class User {
     private String username;
 
     @Column(name = "password_hash", length = 255)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String passwordHash;
 
     @Column(length = 20, unique = true)

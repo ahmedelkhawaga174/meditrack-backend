@@ -1,6 +1,7 @@
 package com.meditrack.meditrack_backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,7 +35,7 @@ public class Department {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "department")
-    @JsonIgnore
+    @JsonIgnoreProperties("department")
     private List<Doctor> doctors;
 
     @PrePersist
