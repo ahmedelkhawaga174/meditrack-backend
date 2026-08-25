@@ -1,12 +1,11 @@
 package com.meditrack.meditrack_backend.service;
 
-import com.meditrack.meditrack_backend.entities.Department;
+import com.meditrack.meditrack_backend.entity.Department;
 import com.meditrack.meditrack_backend.repository.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

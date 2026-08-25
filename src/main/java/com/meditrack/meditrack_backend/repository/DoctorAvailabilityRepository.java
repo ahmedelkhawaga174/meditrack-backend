@@ -1,7 +1,7 @@
 package com.meditrack.meditrack_backend.repository;
 
-import com.meditrack.meditrack_backend.entities.AvailabilitySlot;
-import com.meditrack.meditrack_backend.entities.Doctor;
+import com.meditrack.meditrack_backend.entity.AvailabilitySlot;
+import com.meditrack.meditrack_backend.entity.Doctor;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.DayOfWeek;

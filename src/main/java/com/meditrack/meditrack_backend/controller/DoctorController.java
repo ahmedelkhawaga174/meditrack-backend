@@ -1,6 +1,6 @@
 package com.meditrack.meditrack_backend.controller;
 
-import com.meditrack.meditrack_backend.entities.Doctor;
+import com.meditrack.meditrack_backend.entity.Doctor;
 import com.meditrack.meditrack_backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

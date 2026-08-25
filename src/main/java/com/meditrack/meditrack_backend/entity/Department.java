@@ -1,4 +1,4 @@
-package com.meditrack.meditrack_backend.entities;
+package com.meditrack.meditrack_backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

@@ -1,13 +1,22 @@
 package com.meditrack.meditrack_backend.repository;
 
-import com.meditrack.meditrack_backend.entities.Appointment;
-import com.meditrack.meditrack_backend.entities.Doctor;
+import com.meditrack.meditrack_backend.entity.Appointment;
+import com.meditrack.meditrack_backend.enums.AppointmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+@Repository
+public interface AppointmentRepository extends JpaRepository<Appointment, UUID> {
 
-    List<Appointment> findByDoctorAndAppointmentDate(Doctor doctor, LocalDate appointmentDate);
+    List<Appointment> findByPatientId(UUID patientId);
+
+    List<Appointment> findByDoctorId(UUID doctorId);
+
+    Optional<Appointment> findBySlotId(UUID slotId);
+
+    List<Appointment> findByDoctorIdAndStatus(UUID doctorId, AppointmentStatus status);
 }

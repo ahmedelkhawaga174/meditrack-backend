@@ -1,7 +1,7 @@
 package com.meditrack.meditrack_backend.service;
 
-import com.meditrack.meditrack_backend.entities.Department;
-import com.meditrack.meditrack_backend.entities.Doctor;
+import com.meditrack.meditrack_backend.entity.Department;
+import com.meditrack.meditrack_backend.entity.Doctor;
 import com.meditrack.meditrack_backend.repository.DepartmentRepository;
 import com.meditrack.meditrack_backend.repository.DoctorRepository;
 import lombok.RequiredArgsConstructor;
