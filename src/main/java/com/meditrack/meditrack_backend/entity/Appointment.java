@@ -2,9 +2,9 @@ package com.meditrack.meditrack_backend.entity;
 
 import com.meditrack.meditrack_backend.enums.AppointmentStatus;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
-
 
 @Entity
 @Table(
@@ -16,8 +16,12 @@ import java.time.LocalDateTime;
                 )
         }
 )
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Appointment {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,60 +56,5 @@ public class Appointment {
         if (status == null) {
             status = AppointmentStatus.PENDING;
         }
-    }
-
-    public Appointment() {
-    }
-
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-
-    public Doctor getDoctor() {
-        return doctor;
-    }
-
-    public void setDoctor(Doctor doctor) {
-        this.doctor = doctor;
-    }
-
-    public AvailabilitySlot getSlot() {
-        return slot;
-    }
-
-    public void setSlot(AvailabilitySlot slot) {
-        this.slot = slot;
-    }
-
-    public AppointmentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(AppointmentStatus status) {
-        this.status = status;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
     }
 }

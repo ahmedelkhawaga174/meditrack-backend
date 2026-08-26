@@ -2,6 +2,7 @@ package com.meditrack.meditrack_backend.entity;
 
 import com.meditrack.meditrack_backend.enums.SlotStatus;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -16,6 +17,11 @@ import java.time.LocalTime;
                 )
         }
 )
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AvailabilitySlot {
 
     @Id
@@ -38,55 +44,4 @@ public class AvailabilitySlot {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SlotStatus status;
-
-    public AvailabilitySlot() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Doctor getDoctor() {
-        return doctor;
-    }
-
-    public void setDoctor(Doctor doctor) {
-        this.doctor = doctor;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public SlotStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(SlotStatus status) {
-        this.status = status;
-    }
 }
