@@ -19,10 +19,8 @@ public class DoctorService {
 
     public List<DoctorResponse> getAvailableDoctors(Long departmentId, LocalDate date) {
 
-        // 1. جلب كل الأطباء
         List<Doctor> doctors = doctorRepository.findAll();
 
-        // 2. الفلترة في الـ Memory بناءً على الشروط المتاحة
         return doctors.stream()
                 .filter(doctor -> departmentId == null ||
                         (doctor.getDepartment() != null && doctor.getDepartment().getId().equals(departmentId)))
