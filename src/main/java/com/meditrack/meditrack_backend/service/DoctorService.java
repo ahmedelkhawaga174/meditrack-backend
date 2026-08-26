@@ -19,14 +19,16 @@ public class DoctorService {
 
     public List<DoctorResponse> getAvailableDoctors(Long departmentId, LocalDate date) {
 
-        List<Doctor> doctors = doctorRepository
-                .findDistinctByDepartmentIdAndAvailabilitySlotsDateAndAvailabilitySlotsStatus(
-                        departmentId,
-                        date,
-                        SlotStatus.AVAILABLE
-                );
+        // 1. جلب كل الأطباء
+        List<Doctor> doctors = doctorRepository.findAll();
 
+        // 2. الفلترة في الـ Memory بناءً على الشروط المتاحة
         return doctors.stream()
+                .filter(doctor -> departmentId == null ||
+                        (doctor.getDepartment() != null && doctor.getDepartment().getId().equals(departmentId)))
+                .filter(doctor -> doctor.getAvailabilitySlots() != null && doctor.getAvailabilitySlots().stream()
+                        .anyMatch(slot -> slot.getStatus() == SlotStatus.AVAILABLE &&
+                                (date == null || slot.getDate().equals(date))))
                 .map(doctor -> DoctorResponse.builder()
                         .id(doctor.getId())
                         .firstName(doctor.getFirstName())
@@ -35,16 +37,16 @@ public class DoctorService {
                         .departmentId(doctor.getDepartment() != null ? doctor.getDepartment().getId() : null)
                         .departmentName(doctor.getDepartment() != null ? doctor.getDepartment().getName() : null)
                         .availableSlots(
-                                doctor.getAvailabilitySlots() != null ?
-                                        doctor.getAvailabilitySlots().stream()
-                                                .filter(slot -> slot.getDate().equals(date) && slot.getStatus() == SlotStatus.AVAILABLE)
-                                                .map(slot -> SlotResponse.builder()
-                                                        .id(slot.getId())
-                                                        .date(slot.getDate())
-                                                        .startTime(slot.getStartTime())
-                                                        .endTime(slot.getEndTime())
-                                                        .build())
-                                                .toList() : List.of()
+                                doctor.getAvailabilitySlots().stream()
+                                        .filter(slot -> slot.getStatus() == SlotStatus.AVAILABLE &&
+                                                (date == null || slot.getDate().equals(date)))
+                                        .map(slot -> SlotResponse.builder()
+                                                .id(slot.getId())
+                                                .date(slot.getDate())
+                                                .startTime(slot.getStartTime())
+                                                .endTime(slot.getEndTime())
+                                                .build())
+                                        .toList()
                         )
                         .build())
                 .toList();

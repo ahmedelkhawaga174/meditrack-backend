@@ -19,8 +19,8 @@ public class DoctorController {
 
     @GetMapping
     public ResponseEntity<List<DoctorResponse>> getAvailableDoctors(
-            @RequestParam(name = "department") Long departmentId,
-            @RequestParam(name = "date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam(name = "department", required = false) Long departmentId,
+            @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
         List<DoctorResponse> doctors = doctorService.getAvailableDoctors(departmentId, date);
         return ResponseEntity.ok(doctors);
