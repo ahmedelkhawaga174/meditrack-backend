@@ -210,4 +210,78 @@ class DoctorServiceTest {
                 doctorRepository
         ).findById(999L);
     }
+
+    @Test
+    void shouldGetAvailableDoctorsWithFiltersSuccessfully() {
+        Department department = new Department();
+        department.setId(1L);
+        department.setName("Cardiology");
+
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+        doctor.setFirstName("Abdelrhman");
+        doctor.setLastName("Ahmed");
+        doctor.setSpecialization("Cardiologist");
+        doctor.setDepartment(department);
+
+        LocalDate filterDate = LocalDate.of(2026, 8, 30);
+
+        AvailabilitySlot availableSlot = new AvailabilitySlot();
+        availableSlot.setId(1L);
+        availableSlot.setDoctor(doctor);
+        availableSlot.setDate(filterDate);
+        availableSlot.setStartTime(LocalTime.of(9, 0));
+        availableSlot.setEndTime(LocalTime.of(9, 30));
+        availableSlot.setStatus(SlotStatus.AVAILABLE);
+
+        AvailabilitySlot bookedSlot = new AvailabilitySlot();
+        bookedSlot.setId(2L);
+        bookedSlot.setDoctor(doctor);
+        bookedSlot.setDate(filterDate);
+        bookedSlot.setStartTime(LocalTime.of(10, 0));
+        bookedSlot.setEndTime(LocalTime.of(10, 30));
+        bookedSlot.setStatus(SlotStatus.BOOKED);
+
+        doctor.setAvailabilitySlots(List.of(availableSlot, bookedSlot));
+
+        when(doctorRepository.findAll()).thenReturn(List.of(doctor));
+
+        List<DoctorResponse> result = doctorService.getAvailableDoctors(1L, filterDate);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals(1, result.get(0).getAvailableSlots().size());
+        assertEquals(1L, result.get(0).getAvailableSlots().get(0).getId());
+
+        verify(doctorRepository).findAll();
+    }
+
+    @Test
+    void shouldGetAvailableDoctorsWhenFiltersAreNull() {
+        Department department = new Department();
+        department.setId(1L);
+        department.setName("Cardiology");
+
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+        doctor.setFirstName("Abdelrhman");
+        doctor.setLastName("Ahmed");
+        doctor.setDepartment(department);
+
+        AvailabilitySlot availableSlot = new AvailabilitySlot();
+        availableSlot.setId(1L);
+        availableSlot.setDate(LocalDate.of(2026, 8, 30));
+        availableSlot.setStatus(SlotStatus.AVAILABLE);
+
+        doctor.setAvailabilitySlots(List.of(availableSlot));
+
+        when(doctorRepository.findAll()).thenReturn(List.of(doctor));
+
+        List<DoctorResponse> result = doctorService.getAvailableDoctors(null, null);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(doctorRepository).findAll();
+    }
 }
