@@ -5,19 +5,17 @@ import com.meditrack.meditrack_backend.dto.BookAppointmentRequest;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.service.AppointmentService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/appointments")
+@RequiredArgsConstructor
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
-
-    public AppointmentController(AppointmentService appointmentService) {
-        this.appointmentService = appointmentService;
-    }
 
     @PostMapping
     public ResponseEntity<AppointmentResponse> bookAppointment(

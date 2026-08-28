@@ -27,3 +27,9 @@ INSERT INTO availability_slots (doctor_id, date, start_time, end_time, status) V
                                                                                    (3, '2026-08-30', '14:00:00', '14:30:00', 'AVAILABLE'),
                                                                                    (3, '2026-08-30', '14:30:00', '15:00:00', 'AVAILABLE'),
                                                                                    (4, '2026-08-30', '16:00:00', '16:30:00', 'BOOKED');
+
+INSERT INTO users (username, password_hash, phone, role, status, created_at) VALUES
+    ('patient_mostafa', 'pass123_hash', '01055556666', 'PATIENT', 'ACTIVE', CURRENT_TIMESTAMP);
+
+INSERT INTO patients (user_id, first_name, last_name, date_of_birth, gender, created_at) VALUES
+    (5, 'Mostafa', 'Kharbita', '2005-01-01', 'MALE', CURRENT_TIMESTAMP);
