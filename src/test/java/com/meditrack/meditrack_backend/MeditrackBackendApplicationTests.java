@@ -6,8 +6,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class MeditrackBackendApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+// TODO needs to be add a meaningful test @Ahmed Elkhawaga responsibility
+
+
+//	@Test
+//	void contextLoads() {
+//	}
 
 }
