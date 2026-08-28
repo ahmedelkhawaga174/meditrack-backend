@@ -25,4 +25,10 @@ public class DoctorController {
         List<DoctorResponse> doctors = doctorService.getAvailableDoctors(departmentId, date);
         return ResponseEntity.ok(doctors);
     }
+
+    //get doctor by id
+    @GetMapping("/{id}")
+    public ResponseEntity<DoctorResponse> getDoctorById(@PathVariable long id){
+        return ResponseEntity.ok(doctorService.getDoctorById(id));
+    }
 }

@@ -49,4 +49,34 @@ public class DoctorService {
                         .build())
                 .toList();
     }
+
+
+    // view doctor info -> get doctor by id
+    public DoctorResponse getDoctorById(long doctorId){
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(()->
+                        new RuntimeException("Doctor not found with id "+ doctorId)
+                );
+    return DoctorResponse.builder()
+            .id(doctor.getId())
+            .firstName(doctor.getFirstName())
+            .lastName(doctor.getLastName())
+            .specialization(doctor.getSpecialization())
+            .departmentId(
+                    doctor.getDepartment() !=null? doctor.getDepartment().getId():null)
+            .departmentName(
+                    doctor.getDepartment()!=null? doctor.getDepartment().getName():null)
+            .availableSlots(
+                    doctor.getAvailabilitySlots().stream()
+                            .filter(slot -> slot.getStatus() == SlotStatus.AVAILABLE)
+                            .map(slot -> SlotResponse.builder()
+                                    .id(slot.getId())
+                                    .date(slot.getDate())
+                                    .startTime(slot.getStartTime())
+                                    .endTime(slot.getEndTime())
+                                    .build())
+                            .toList()
+            )
+            .build();
+    }
 }
