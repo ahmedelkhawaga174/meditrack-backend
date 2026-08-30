@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/meditrack
     username: postgres
-    password: Kharbita+2005
+    password: 1212120000
 
   jpa:
     hibernate:
