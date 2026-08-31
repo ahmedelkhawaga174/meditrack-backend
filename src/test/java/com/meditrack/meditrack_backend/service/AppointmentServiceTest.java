@@ -2,12 +2,14 @@ package com.meditrack.meditrack_backend.service;
 
 import com.meditrack.meditrack_backend.entity.*;
 import com.meditrack.meditrack_backend.enums.AppointmentStatus;
+import com.meditrack.meditrack_backend.enums.QueueStatus;
 import com.meditrack.meditrack_backend.enums.SlotStatus;
 import com.meditrack.meditrack_backend.exception.ResourceNotFoundException;
 import com.meditrack.meditrack_backend.repository.AppointmentRepository;
 import com.meditrack.meditrack_backend.repository.AvailabilitySlotRepository;
 import com.meditrack.meditrack_backend.repository.DoctorRepository;
 import com.meditrack.meditrack_backend.repository.PatientRepository;
+import com.meditrack.meditrack_backend.repository.WaitingQueueRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +36,9 @@ class AppointmentServiceTest {
     @Mock
     private AvailabilitySlotRepository availabilitySlotRepository;
 
+    @Mock
+    private WaitingQueueRepository waitingQueueRepository;
+
     private AppointmentService appointmentService;
 
     @BeforeEach
@@ -42,7 +47,8 @@ class AppointmentServiceTest {
                 appointmentRepository,
                 patientRepository,
                 doctorRepository,
-                availabilitySlotRepository
+                availabilitySlotRepository,
+                waitingQueueRepository
         );
     }
 
@@ -250,5 +256,186 @@ class AppointmentServiceTest {
                 ResourceNotFoundException.class,
                 () -> appointmentService.getAppointment(999L)
         );
+    }
+
+    @Test
+    void shouldCheckInPatientSuccessfully() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+
+        when(appointmentRepository.findById(1L))
+                .thenReturn(Optional.of(appointment));
+
+        when(waitingQueueRepository.findByAppointmentId(1L))
+                .thenReturn(Optional.empty());
+
+        when(appointmentRepository.save(any(Appointment.class)))
+                .thenAnswer(invocation ->
+                        invocation.getArgument(0));
+
+        /*
+         * Current AppointmentService uses:
+         *
+         * findTopByOrderByQueueOrderDesc()
+         *
+         * to find the last patient in the queue.
+         *
+         * Returning empty means this is the first patient,
+         * so the new queue order must be 1.
+         */
+        when(waitingQueueRepository.findTopByOrderByQueueOrderDesc())
+                .thenReturn(Optional.empty());
+
+        when(waitingQueueRepository.save(any(WaitingQueueEntry.class)))
+                .thenAnswer(invocation -> {
+                    WaitingQueueEntry entry =
+                            invocation.getArgument(0);
+
+                    entry.setId(1L);
+
+                    return entry;
+                });
+
+        Appointment result =
+                appointmentService.checkInPatient(1L);
+
+        assertNotNull(result);
+
+        assertEquals(
+                AppointmentStatus.CHECKED_IN,
+                result.getStatus()
+        );
+
+        verify(appointmentRepository).findById(1L);
+
+        verify(appointmentRepository)
+                .save(appointment);
+
+        verify(waitingQueueRepository)
+                .findByAppointmentId(1L);
+
+        verify(waitingQueueRepository)
+                .findTopByOrderByQueueOrderDesc();
+
+        verify(waitingQueueRepository)
+                .save(argThat(entry ->
+                        entry.getAppointment().equals(appointment)
+                                && entry.getStatus() == QueueStatus.WAITING
+                                && entry.getQueueOrder() == 1
+                ));
+    }
+
+    @Test
+    void shouldCheckInPatientAfterExistingPatient() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(2L);
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+
+        WaitingQueueEntry existingEntry =
+                new WaitingQueueEntry();
+
+        existingEntry.setId(1L);
+        existingEntry.setQueueOrder(3);
+        existingEntry.setStatus(QueueStatus.WAITING);
+
+        when(appointmentRepository.findById(2L))
+                .thenReturn(Optional.of(appointment));
+
+        when(waitingQueueRepository.findByAppointmentId(2L))
+                .thenReturn(Optional.empty());
+
+        when(appointmentRepository.save(any(Appointment.class)))
+                .thenAnswer(invocation ->
+                        invocation.getArgument(0));
+
+        when(waitingQueueRepository.findTopByOrderByQueueOrderDesc())
+                .thenReturn(Optional.of(existingEntry));
+
+        when(waitingQueueRepository.save(any(WaitingQueueEntry.class)))
+                .thenAnswer(invocation ->
+                        invocation.getArgument(0));
+
+        Appointment result =
+                appointmentService.checkInPatient(2L);
+
+        assertNotNull(result);
+
+        assertEquals(
+                AppointmentStatus.CHECKED_IN,
+                result.getStatus()
+        );
+
+        verify(waitingQueueRepository)
+                .findTopByOrderByQueueOrderDesc();
+
+        verify(waitingQueueRepository)
+                .save(argThat(entry ->
+                        entry.getAppointment().equals(appointment)
+                                && entry.getStatus() == QueueStatus.WAITING
+                                && entry.getQueueOrder() == 4
+                ));
+    }
+
+    @Test
+    void shouldRejectCheckInWhenAppointmentIsNotConfirmed() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+
+        when(appointmentRepository.findById(1L))
+                .thenReturn(Optional.of(appointment));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> appointmentService.checkInPatient(1L)
+        );
+
+        verify(appointmentRepository, never())
+                .save(any(Appointment.class));
+
+        verifyNoInteractions(waitingQueueRepository);
+    }
+
+    @Test
+    void shouldRejectCheckInWhenPatientIsAlreadyInQueue() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+
+        WaitingQueueEntry existingEntry =
+                new WaitingQueueEntry();
+
+        existingEntry.setId(10L);
+        existingEntry.setAppointment(appointment);
+        existingEntry.setStatus(QueueStatus.WAITING);
+        existingEntry.setQueueOrder(1);
+
+        when(appointmentRepository.findById(1L))
+                .thenReturn(Optional.of(appointment));
+
+        when(waitingQueueRepository.findByAppointmentId(1L))
+                .thenReturn(Optional.of(existingEntry));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> appointmentService.checkInPatient(1L)
+        );
+
+        verify(appointmentRepository, never())
+                .save(any(Appointment.class));
+
+        verify(waitingQueueRepository, never())
+                .save(any(WaitingQueueEntry.class));
+
+        verify(waitingQueueRepository)
+                .findByAppointmentId(1L);
+
+        verify(waitingQueueRepository, never())
+                .findTopByOrderByQueueOrderDesc();
     }
 }

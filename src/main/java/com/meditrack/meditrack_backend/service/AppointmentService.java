@@ -4,13 +4,16 @@ import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.entity.AvailabilitySlot;
 import com.meditrack.meditrack_backend.entity.Doctor;
 import com.meditrack.meditrack_backend.entity.Patient;
+import com.meditrack.meditrack_backend.entity.WaitingQueueEntry;
 import com.meditrack.meditrack_backend.enums.AppointmentStatus;
+import com.meditrack.meditrack_backend.enums.QueueStatus;
 import com.meditrack.meditrack_backend.enums.SlotStatus;
 import com.meditrack.meditrack_backend.exception.ResourceNotFoundException;
 import com.meditrack.meditrack_backend.repository.AppointmentRepository;
 import com.meditrack.meditrack_backend.repository.AvailabilitySlotRepository;
 import com.meditrack.meditrack_backend.repository.DoctorRepository;
 import com.meditrack.meditrack_backend.repository.PatientRepository;
+import com.meditrack.meditrack_backend.repository.WaitingQueueRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,17 +24,20 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final AvailabilitySlotRepository availabilitySlotRepository;
+    private final WaitingQueueRepository waitingQueueRepository;
 
     public AppointmentService(
             AppointmentRepository appointmentRepository,
             PatientRepository patientRepository,
             DoctorRepository doctorRepository,
-            AvailabilitySlotRepository availabilitySlotRepository
+            AvailabilitySlotRepository availabilitySlotRepository,
+            WaitingQueueRepository waitingQueueRepository
     ) {
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
         this.availabilitySlotRepository = availabilitySlotRepository;
+        this.waitingQueueRepository = waitingQueueRepository;
     }
 
     @Transactional
@@ -85,5 +91,51 @@ public class AppointmentService {
                         new ResourceNotFoundException(
                                 "Appointment not found"
                         ));
+    }
+
+    @Transactional
+    public Appointment checkInPatient(Long appointmentId) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Appointment not found"
+                        ));
+
+        if (appointment.getStatus() != AppointmentStatus.CONFIRMED) {
+            throw new IllegalArgumentException(
+                    "Only confirmed appointments can be checked in"
+            );
+        }
+
+        if (waitingQueueRepository
+                .findByAppointmentId(appointmentId)
+                .isPresent()) {
+
+            throw new IllegalArgumentException(
+                    "Patient is already checked in"
+            );
+        }
+
+        appointment.setStatus(AppointmentStatus.CHECKED_IN);
+
+        Appointment savedAppointment =
+                appointmentRepository.save(appointment);
+
+        Integer nextQueueOrder =
+                waitingQueueRepository
+                        .findTopByOrderByQueueOrderDesc()
+                        .map(entry -> entry.getQueueOrder() + 1)
+                        .orElse(1);
+
+        WaitingQueueEntry queueEntry = WaitingQueueEntry.builder()
+                .appointment(savedAppointment)
+                .status(QueueStatus.WAITING)
+                .queueOrder(nextQueueOrder)
+                .build();
+
+        waitingQueueRepository.save(queueEntry);
+
+        return savedAppointment;
     }
 }

@@ -1,0 +1,465 @@
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\entity\Appointment.java ====================
+
+package com.meditrack.meditrack_backend.entity;
+
+import com.meditrack.meditrack_backend.enums.AppointmentStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(
+        name = "appointments",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_appointment_slot",
+                        columnNames = "slot_id"
+                )
+        }
+)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Appointment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "patient_id", nullable = false)
+    private Patient patient;
+
+    @ManyToOne
+    @JoinColumn(name = "doctor_id", nullable = false)
+    private Doctor doctor;
+
+    @OneToOne
+    @JoinColumn(name = "slot_id", nullable = false, unique = true)
+    private AvailabilitySlot slot;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private AppointmentStatus status;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(length = 255)
+    private String notes;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+
+        if (status == null) {
+            status = AppointmentStatus.PENDING;
+        }
+    }
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\entity\Patient.java ====================
+
+package com.meditrack.meditrack_backend.entity;
+
+import com.meditrack.meditrack_backend.enums.Gender;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "patients")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Patient {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    @Column(name = "first_name", nullable = false, length = 50)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false, length = 50)
+    private String lastName;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private Gender gender;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\entity\Doctor.java ====================
+
+package com.meditrack.meditrack_backend.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.List;
+
+@Entity
+@Table(name = "doctors")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Doctor {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
+
+    @Column(name = "first_name", nullable = false, length = 50)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false, length = 50)
+    private String lastName;
+
+    @Column(length = 100)
+    private String specialization;
+
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL)
+    private List<AvailabilitySlot> availabilitySlots;
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\entity\User.java ====================
+
+package com.meditrack.meditrack_backend.entity;
+
+import com.meditrack.meditrack_backend.enums.UserRole;
+import com.meditrack.meditrack_backend.enums.UserStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(length = 50)
+    private String username;
+
+    @Column(name = "password_hash", length = 255)
+    private String passwordHash;
+
+    @Column(length = 20)
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserRole role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserStatus status;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\enums\AppointmentStatus.java ====================
+
+package com.meditrack.meditrack_backend.enums;
+
+public enum AppointmentStatus {
+    PENDING,
+    CONFIRMED,
+    CANCELLED,
+    COMPLETED,
+    NO_SHOW
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\enums\UserRole.java ====================
+
+package com.meditrack.meditrack_backend.enums;
+
+public enum UserRole {
+    PATIENT,
+    DOCTOR,
+    RECEPTIONIST,
+    SUPER_ADMIN
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\repository\AppointmentRepository.java ====================
+
+package com.meditrack.meditrack_backend.repository;
+
+import com.meditrack.meditrack_backend.entity.Appointment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDate;
+import java.util.List;
+
+
+public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+    List<Appointment> findUpcomingByPatientId(Long patiendId, LocalDate now);
+
+    List<Appointment> findPastByPatientId(Long patientId, LocalDate now);
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\service\AppointmentService.java ====================
+
+package com.meditrack.meditrack_backend.service;
+
+import com.meditrack.meditrack_backend.entity.Appointment;
+import com.meditrack.meditrack_backend.entity.AvailabilitySlot;
+import com.meditrack.meditrack_backend.entity.Doctor;
+import com.meditrack.meditrack_backend.entity.Patient;
+import com.meditrack.meditrack_backend.enums.AppointmentStatus;
+import com.meditrack.meditrack_backend.enums.SlotStatus;
+import com.meditrack.meditrack_backend.exception.ResourceNotFoundException;
+import com.meditrack.meditrack_backend.repository.AppointmentRepository;
+import com.meditrack.meditrack_backend.repository.AvailabilitySlotRepository;
+import com.meditrack.meditrack_backend.repository.DoctorRepository;
+import com.meditrack.meditrack_backend.repository.PatientRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AppointmentService {
+
+    private final AppointmentRepository appointmentRepository;
+    private final PatientRepository patientRepository;
+    private final DoctorRepository doctorRepository;
+    private final AvailabilitySlotRepository availabilitySlotRepository;
+
+    public AppointmentService(
+            AppointmentRepository appointmentRepository,
+            PatientRepository patientRepository,
+            DoctorRepository doctorRepository,
+            AvailabilitySlotRepository availabilitySlotRepository
+    ) {
+        this.appointmentRepository = appointmentRepository;
+        this.patientRepository = patientRepository;
+        this.doctorRepository = doctorRepository;
+        this.availabilitySlotRepository = availabilitySlotRepository;
+    }
+
+    @Transactional
+    public Appointment bookAppointment(
+            Long patientId,
+            Long doctorId,
+            Long slotId,
+            String notes
+    ) {
+
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Patient not found"));
+
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Doctor not found"));
+
+        AvailabilitySlot slot = availabilitySlotRepository
+                .findByIdAndStatus(slotId, SlotStatus.AVAILABLE)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Available slot not found"
+                        ));
+
+        if (!slot.getDoctor().getId().equals(doctor.getId())) {
+            throw new IllegalArgumentException(
+                    "The selected slot does not belong to this doctor"
+            );
+        }
+
+        slot.setStatus(SlotStatus.BOOKED);
+        availabilitySlotRepository.save(slot);
+
+        Appointment appointment = new Appointment();
+
+        appointment.setPatient(patient);
+        appointment.setDoctor(doctor);
+        appointment.setSlot(slot);
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointment.setNotes(notes);
+
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional(readOnly = true)
+    public Appointment getAppointment(Long appointmentId) {
+
+        return appointmentRepository.findById(appointmentId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Appointment not found"
+                        ));
+    }
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\controller\AppointmentController.java ====================
+
+package com.meditrack.meditrack_backend.controller;
+
+import com.meditrack.meditrack_backend.dto.AppointmentResponse;
+import com.meditrack.meditrack_backend.dto.BookAppointmentRequest;
+import com.meditrack.meditrack_backend.entity.Appointment;
+import com.meditrack.meditrack_backend.service.AppointmentService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/appointments")
+@RequiredArgsConstructor
+public class AppointmentController {
+
+    private final AppointmentService appointmentService;
+
+    @PostMapping
+    public ResponseEntity<AppointmentResponse> bookAppointment(
+            @Valid @RequestBody BookAppointmentRequest request
+    ) {
+
+        Appointment appointment = appointmentService.bookAppointment(
+                request.getPatientId(),
+                request.getDoctorId(),
+                request.getSlotId(),
+                request.getNotes()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(toResponse(appointment));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AppointmentResponse> getAppointment(
+            @PathVariable Long id
+    ) {
+
+        Appointment appointment = appointmentService.getAppointment(id);
+
+        return ResponseEntity.ok(toResponse(appointment));
+    }
+
+    private AppointmentResponse toResponse(Appointment appointment) {
+
+        return new AppointmentResponse(
+                appointment.getId(),
+                appointment.getPatient().getId(),
+                appointment.getDoctor().getId(),
+                appointment.getSlot().getId(),
+                appointment.getStatus(),
+                appointment.getCreatedAt(),
+                appointment.getNotes()
+        );
+    }
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\dto\AppointmentResponse.java ====================
+
+package com.meditrack.meditrack_backend.dto;
+
+import com.meditrack.meditrack_backend.enums.AppointmentStatus;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class AppointmentResponse {
+
+    private Long id;
+    private Long patientId;
+    private Long doctorId;
+    private Long slotId;
+    private AppointmentStatus status;
+    private LocalDateTime createdAt;
+    private String notes;
+}
+
+
+==================== src\main\java\com\meditrack\meditrack_backend\config\SecurityConfig.java ====================
+
+package com.meditrack.meditrack_backend.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
+
+        http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                );
+
+        return http.build();
+    }
+}
