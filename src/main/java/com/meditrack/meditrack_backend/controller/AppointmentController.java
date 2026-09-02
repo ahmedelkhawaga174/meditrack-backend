@@ -10,12 +10,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+
+    @GetMapping
+    public ResponseEntity<List<AppointmentResponse>> getAllAppointments() {
+
+        List<Appointment> appointments = appointmentService.getAllAppointments();
+
+        List<AppointmentResponse> responses = appointments.stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(responses);
+    }
 
     @PostMapping
     public ResponseEntity<AppointmentResponse> bookAppointment(

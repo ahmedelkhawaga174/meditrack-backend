@@ -14,6 +14,8 @@ import com.meditrack.meditrack_backend.repository.PatientRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class AppointmentService {
 
@@ -32,6 +34,11 @@ public class AppointmentService {
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
         this.availabilitySlotRepository = availabilitySlotRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Appointment> getAllAppointments() {
+        return appointmentRepository.findAll();
     }
 
     @Transactional
