@@ -72,11 +72,5 @@ public class AppointmentController {
         );
     }
 
-    @GetMapping("/referrals/pending")
-    public ResponseEntity<List<PendingReferralResponse>> getPendingReferrals(
-            @RequestAttribute("authenticatedDoctorId") Long doctorId) {
 
-        List<PendingReferralResponse> pendingReferrals = appointmentService.getPendingAppointmentsForDoctor(doctorId);
-        return ResponseEntity.ok(pendingReferrals);
-    }
 }
