@@ -1,5 +1,6 @@
 package com.meditrack.meditrack_backend.service;
 
+import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.entity.AvailabilitySlot;
 import com.meditrack.meditrack_backend.entity.Doctor;
@@ -92,5 +93,22 @@ public class AppointmentService {
                         new ResourceNotFoundException(
                                 "Appointment not found"
                         ));
+    }
+
+    @Transactional(readOnly = true)
+    public List<PendingReferralResponse> getPendingAppointmentsForDoctor(Long doctorId) {
+        List<Appointment> appointments = appointmentRepository
+                .findByDoctorIdAndStatusOrderByCreatedAtDesc(doctorId, AppointmentStatus.PENDING);
+
+        return appointments.stream()
+                .map(apt -> PendingReferralResponse.builder()
+                        .id(apt.getId())
+                        .patientId(apt.getPatient().getId())
+                        .patientName(apt.getPatient().getFirstName() + " " + apt.getPatient().getLastName())
+                        .notes(apt.getNotes())
+                        .status(apt.getStatus().name())
+                        .createdAt(apt.getCreatedAt())
+                        .build())
+                .toList();
     }
 }
