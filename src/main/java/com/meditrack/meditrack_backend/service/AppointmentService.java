@@ -93,4 +93,24 @@ public class AppointmentService {
                                 "Appointment not found"
                         ));
     }
+    @Transactional
+    public Appointment checkInPatient(Long appointmentId) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Appointment not found"
+                        )
+                );
+
+        if (appointment.getStatus() != AppointmentStatus.CONFIRMED) {
+            throw new IllegalStateException(
+                    "Only confirmed appointments can be checked in"
+            );
+        }
+
+        appointment.setStatus(AppointmentStatus.CHECKED_IN);
+
+        return appointmentRepository.save(appointment);
+    }
 }

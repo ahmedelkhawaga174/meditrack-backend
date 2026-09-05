@@ -19,14 +19,14 @@ INSERT INTO doctors (user_id, department_id, first_name, last_name, specializati
                                                                                         (4, 3, 'Omar', 'Hassan', 'Neurologist');
 
 INSERT INTO availability_slots (doctor_id, date, start_time, end_time, status) VALUES
-                                                                                   (1, '2026-08-30', '09:00:00', '09:30:00', 'AVAILABLE'),
-                                                                                   (1, '2026-08-30', '09:30:00', '10:00:00', 'AVAILABLE'),
-                                                                                   (1, '2026-08-30', '10:00:00', '10:30:00', 'BOOKED'),
-                                                                                   (2, '2026-08-30', '11:00:00', '11:30:00', 'AVAILABLE'),
-                                                                                   (2, '2026-08-31', '12:00:00', '12:30:00', 'AVAILABLE'),
-                                                                                   (3, '2026-08-30', '14:00:00', '14:30:00', 'AVAILABLE'),
-                                                                                   (3, '2026-08-30', '14:30:00', '15:00:00', 'AVAILABLE'),
-                                                                                   (4, '2026-08-30', '16:00:00', '16:30:00', 'BOOKED');
+                                                                                   (1, '2026-09-4', '09:00:00', '09:30:00', 'AVAILABLE'),
+                                                                                   (1, '2026-09-4', '09:30:00', '10:00:00', 'AVAILABLE'),
+                                                                                   (1, '2026-09-4', '10:00:00', '10:30:00', 'BOOKED'),
+                                                                                   (2, '2026-09-4', '11:00:00', '11:30:00', 'AVAILABLE'),
+                                                                                   (2, '2026-09-4', '12:00:00', '12:30:00', 'AVAILABLE'),
+                                                                                   (3, '2026-09-4', '14:00:00', '14:30:00', 'AVAILABLE'),
+                                                                                   (3, '2026-09-4', '14:30:00', '15:00:00', 'AVAILABLE'),
+                                                                                   (4, '2026-09-4', '16:00:00', '16:30:00', 'BOOKED');
 
 INSERT INTO users (username, password_hash, phone, role, status, created_at) VALUES
     ('patient_mostafa', 'pass123_hash', '01055556666', 'PATIENT', 'ACTIVE', CURRENT_TIMESTAMP);
