@@ -34,11 +34,11 @@ public class PatientController {
         return ResponseEntity.ok(appointments.stream().map(this::toResponse).toList());
     }
 
-    @GetMapping("/{patientId}/medical-history")
-    public ResponseEntity<MedicalHistoryResponse> getPatientMedicalHistory(@PathVariable Long patientId) {
-        MedicalHistoryResponse medicalHistory = appointmentService.getPatientMedicalHistory(patientId);
-        return ResponseEntity.ok(medicalHistory);
-    }
+//    @GetMapping("/{patientId}/medical-history")
+//    public ResponseEntity<MedicalHistoryResponse> getPatientMedicalHistory(@PathVariable Long patientId) {
+//        MedicalHistoryResponse medicalHistory = appointmentService.getPatientMedicalHistory(patientId);
+//        return ResponseEntity.ok(medicalHistory);
+//    }
 
     private PatientResponse toResponse(Appointment appointment) {
         var doctor = appointment.getDoctor();
