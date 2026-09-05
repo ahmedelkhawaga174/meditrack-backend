@@ -19,9 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.when;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -140,5 +138,39 @@ class AppointmentControllerTest {
                                 .content(requestBody)
                 )
                 .andExpect(status().isBadRequest());
+    }
+    @Test
+    void shouldCheckInPatient() throws Exception {
+
+        Patient patient = new Patient();
+        patient.setId(1L);
+
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+
+        AvailabilitySlot slot = new AvailabilitySlot();
+        slot.setId(1L);
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setPatient(patient);
+        appointment.setDoctor(doctor);
+        appointment.setSlot(slot);
+        appointment.setStatus(AppointmentStatus.CHECKED_IN);
+        appointment.setNotes("First consultation");
+
+        when(appointmentService.checkInPatient(1L))
+                .thenReturn(appointment);
+
+        mockMvc.perform(
+                        patch("/api/appointments/1/check-in")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.patientId").value(1))
+                .andExpect(jsonPath("$.doctorId").value(1))
+                .andExpect(jsonPath("$.slotId").value(1))
+                .andExpect(jsonPath("$.status").value("CHECKED_IN"))
+                .andExpect(jsonPath("$.notes").value("First consultation"));
     }
 }

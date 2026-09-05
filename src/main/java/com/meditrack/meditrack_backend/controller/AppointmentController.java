@@ -73,5 +73,14 @@ public class AppointmentController {
         );
     }
 
+    @PatchMapping("/{id}/check-in")
+    public ResponseEntity<AppointmentResponse> checkInPatient(
+            @PathVariable Long id
+    ) {
 
+        Appointment appointment =
+                appointmentService.checkInPatient(id);
+
+        return ResponseEntity.ok(toResponse(appointment));
+    }
 }

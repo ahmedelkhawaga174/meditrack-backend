@@ -251,4 +251,62 @@ class AppointmentServiceTest {
                 () -> appointmentService.getAppointment(999L)
         );
     }
+    @Test
+    void shouldCheckInPatientSuccessfully() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+
+        when(appointmentRepository.findById(1L))
+                .thenReturn(Optional.of(appointment));
+
+        when(appointmentRepository.save(any(Appointment.class)))
+                .thenReturn(appointment);
+
+        Appointment result =
+                appointmentService.checkInPatient(1L);
+
+        assertNotNull(result);
+
+        assertEquals(
+                AppointmentStatus.CHECKED_IN,
+                result.getStatus()
+        );
+
+        verify(appointmentRepository).findById(1L);
+        verify(appointmentRepository).save(appointment);
+    }
+    @Test
+    void shouldThrowExceptionWhenAppointmentNotFoundForCheckIn() {
+
+        when(appointmentRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> appointmentService.checkInPatient(999L)
+        );
+
+        verify(appointmentRepository, never())
+                .save(any(Appointment.class));
+    }
+    @Test
+    void shouldThrowExceptionWhenAppointmentIsNotConfirmed() {
+
+        Appointment appointment = new Appointment();
+        appointment.setId(1L);
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+
+        when(appointmentRepository.findById(1L))
+                .thenReturn(Optional.of(appointment));
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> appointmentService.checkInPatient(1L)
+        );
+
+        verify(appointmentRepository, never())
+                .save(any(Appointment.class));
+    }
 }

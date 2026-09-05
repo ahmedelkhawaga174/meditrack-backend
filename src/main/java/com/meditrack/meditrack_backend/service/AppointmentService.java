@@ -85,47 +85,24 @@ public class AppointmentService {
                                 "Appointment not found"
                         ));
     }
+    @Transactional
+    public Appointment checkInPatient(Long appointmentId) {
 
-    @Transactional(readOnly = true)
-    public List<PendingReferralResponse> getPendingAppointmentsForDoctor(Long doctorId) {
-        List<Appointment> appointments = appointmentRepository
-                .findByDoctorIdAndStatusOrderByCreatedAtDesc(doctorId, AppointmentStatus.PENDING);
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Appointment not found"
+                        )
+                );
 
-        return appointments.stream()
-                .map(apt -> PendingReferralResponse.builder()
-                        .id(apt.getId())
-                        .patientId(apt.getPatient().getId())
-                        .patientName(apt.getPatient().getFirstName() + " " + apt.getPatient().getLastName())
-                        .notes(apt.getNotes())
-                        .status(apt.getStatus().name())
-                        .createdAt(apt.getCreatedAt())
-                        .build())
-                .toList();
-    }
+        if (appointment.getStatus() != AppointmentStatus.CONFIRMED) {
+            throw new IllegalStateException(
+                    "Only confirmed appointments can be checked in"
+            );
+        }
 
-    @Transactional(readOnly = true)
-    public MedicalHistoryResponse getPatientMedicalHistory(Long patientId) {
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id: " + patientId));
+        appointment.setStatus(AppointmentStatus.CHECKED_IN);
 
-        List<Appointment> appointments = appointmentRepository.findByPatientIdOrderByCreatedAtDesc(patientId);
-
-        List<MedicalHistoryResponse.ConsultationRecordDto> history = appointments.stream()
-                .map(apt -> MedicalHistoryResponse.ConsultationRecordDto.builder()
-                        .appointmentId(apt.getId())
-                        .doctorName(apt.getDoctor().getFirstName() + " " + apt.getDoctor().getLastName())
-                        .specialization(apt.getDoctor().getSpecialization())
-                        .date(apt.getCreatedAt())
-                        .diagnosis(apt.getNotes() != null ? apt.getNotes() : "No formal diagnosis recorded")
-                        .prescription("Standard Follow-up Prescription")
-                        .notes(apt.getNotes())
-                        .build())
-                .toList();
-
-        return MedicalHistoryResponse.builder()
-                .patientId(patient.getId())
-                .patientName(patient.getFirstName() + " " + patient.getLastName())
-                .history(history)
-                .build();
+        return appointmentRepository.save(appointment);
     }
 }
