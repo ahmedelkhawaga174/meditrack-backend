@@ -1,7 +1,9 @@
 package com.meditrack.meditrack_backend.controller;
 
 import com.meditrack.meditrack_backend.dto.DoctorResponse;
+import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
 import com.meditrack.meditrack_backend.dto.SlotResponse;
+import com.meditrack.meditrack_backend.service.AppointmentService;
 import com.meditrack.meditrack_backend.service.DoctorService;
 
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,9 @@ class DoctorControllerTest {
 
     @MockitoBean
     private DoctorService doctorService;
+
+    @MockitoBean
+    private AppointmentService appointmentService;
 
 
     @Test
@@ -141,5 +146,32 @@ class DoctorControllerTest {
                 .andExpect(jsonPath("$[0].availableSlots[0].endTime").value("09:30:00"));
 
         verify(doctorService).getAvailableDoctors(departmentId, date);
+    }
+
+    @Test
+    void shouldGetPendingReferrals() throws Exception {
+        PendingReferralResponse response = PendingReferralResponse.builder()
+                .id(1L)
+                .patientId(1L)
+                .patientName("Ahmed Abdelhalem")
+                .notes("Urgent consultation")
+                .status("PENDING")
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+
+        when(appointmentService.getPendingAppointmentsForDoctor(1L))
+                .thenReturn(List.of(response));
+
+        mockMvc.perform(
+                        get("/api/doctors/referrals/pending")
+                                .param("doctorId", "1")
+                                .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].patientName").value("Ahmed Abdelhalem"))
+                .andExpect(jsonPath("$[0].status").value("PENDING"));
+
+        verify(appointmentService).getPendingAppointmentsForDoctor(1L);
     }
 }

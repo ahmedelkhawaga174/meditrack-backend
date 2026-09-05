@@ -1,6 +1,8 @@
 package com.meditrack.meditrack_backend.controller;
 
 import com.meditrack.meditrack_backend.dto.DoctorResponse;
+import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
+import com.meditrack.meditrack_backend.service.AppointmentService;
 import com.meditrack.meditrack_backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,6 +19,7 @@ import java.util.List;
 public class DoctorController {
 
     private final DoctorService doctorService;
+    private final AppointmentService appointmentService;
 
     @GetMapping
     public ResponseEntity<List<DoctorResponse>> getAvailableDoctors(
@@ -27,9 +30,16 @@ public class DoctorController {
         return ResponseEntity.ok(doctors);
     }
 
-    //get doctor by id
     @GetMapping("/{id}")
     public ResponseEntity<DoctorResponse> getDoctorById(@PathVariable long id){
         return ResponseEntity.ok(doctorService.getDoctorById(id));
+    }
+
+    @GetMapping("/referrals/pending")
+    public ResponseEntity<List<PendingReferralResponse>> getPendingReferrals(
+            @RequestParam(name = "doctorId", required = false, defaultValue = "1") Long doctorId) {
+
+        List<PendingReferralResponse> pendingReferrals = appointmentService.getPendingAppointmentsForDoctor(doctorId);
+        return ResponseEntity.ok(pendingReferrals);
     }
 }

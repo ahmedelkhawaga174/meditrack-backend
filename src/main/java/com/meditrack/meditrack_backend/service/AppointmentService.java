@@ -1,5 +1,7 @@
 package com.meditrack.meditrack_backend.service;
 
+import com.meditrack.meditrack_backend.dto.MedicalHistoryResponse;
+import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.entity.AvailabilitySlot;
 import com.meditrack.meditrack_backend.entity.Doctor;
@@ -11,30 +13,20 @@ import com.meditrack.meditrack_backend.repository.AppointmentRepository;
 import com.meditrack.meditrack_backend.repository.AvailabilitySlotRepository;
 import com.meditrack.meditrack_backend.repository.DoctorRepository;
 import com.meditrack.meditrack_backend.repository.PatientRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final AvailabilitySlotRepository availabilitySlotRepository;
-
-    public AppointmentService(
-            AppointmentRepository appointmentRepository,
-            PatientRepository patientRepository,
-            DoctorRepository doctorRepository,
-            AvailabilitySlotRepository availabilitySlotRepository
-    ) {
-        this.appointmentRepository = appointmentRepository;
-        this.patientRepository = patientRepository;
-        this.doctorRepository = doctorRepository;
-        this.availabilitySlotRepository = availabilitySlotRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<Appointment> getAllAppointments() {
