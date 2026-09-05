@@ -1,5 +1,6 @@
 package com.meditrack.meditrack_backend.service;
 
+import com.meditrack.meditrack_backend.dto.MedicalHistoryResponse;
 import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.entity.AvailabilitySlot;
@@ -110,5 +111,31 @@ public class AppointmentService {
                         .createdAt(apt.getCreatedAt())
                         .build())
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public MedicalHistoryResponse getPatientMedicalHistory(Long patientId) {
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id: " + patientId));
+
+        List<Appointment> appointments = appointmentRepository.findByPatientIdOrderByCreatedAtDesc(patientId);
+
+        List<MedicalHistoryResponse.ConsultationRecordDto> history = appointments.stream()
+                .map(apt -> MedicalHistoryResponse.ConsultationRecordDto.builder()
+                        .appointmentId(apt.getId())
+                        .doctorName(apt.getDoctor().getFirstName() + " " + apt.getDoctor().getLastName())
+                        .specialization(apt.getDoctor().getSpecialization())
+                        .date(apt.getCreatedAt())
+                        .diagnosis(apt.getNotes() != null ? apt.getNotes() : "No formal diagnosis recorded")
+                        .prescription("Standard Follow-up Prescription")
+                        .notes(apt.getNotes())
+                        .build())
+                .toList();
+
+        return MedicalHistoryResponse.builder()
+                .patientId(patient.getId())
+                .patientName(patient.getFirstName() + " " + patient.getLastName())
+                .history(history)
+                .build();
     }
 }
