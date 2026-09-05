@@ -34,12 +34,12 @@ public class DoctorController {
     public ResponseEntity<DoctorResponse> getDoctorById(@PathVariable long id){
         return ResponseEntity.ok(doctorService.getDoctorById(id));
     }
-
-    @GetMapping("/referrals/pending")
-    public ResponseEntity<List<PendingReferralResponse>> getPendingReferrals(
-            @RequestParam(name = "doctorId", required = false, defaultValue = "1") Long doctorId) {
-
-        List<PendingReferralResponse> pendingReferrals = appointmentService.getPendingAppointmentsForDoctor(doctorId);
-        return ResponseEntity.ok(pendingReferrals);
-    }
+//
+//    @GetMapping("/referrals/pending")
+//    public ResponseEntity<List<PendingReferralResponse>> getPendingReferrals(
+//            @RequestParam(name = "doctorId", required = false, defaultValue = "1") Long doctorId) {
+//
+//        List<PendingReferralResponse> pendingReferrals = appointmentService.getPendingAppointmentsForDoctor(doctorId);
+//        return ResponseEntity.ok(pendingReferrals);
+//    }
 }
