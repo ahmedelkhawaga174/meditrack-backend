@@ -2,6 +2,7 @@ package com.meditrack.meditrack_backend.controller;
 
 import com.meditrack.meditrack_backend.dto.AppointmentResponse;
 import com.meditrack.meditrack_backend.dto.BookAppointmentRequest;
+import com.meditrack.meditrack_backend.dto.MedicalHistoryResponse;
 import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.service.AppointmentService;

@@ -1,8 +1,13 @@
 package com.meditrack.meditrack_backend.controller;
 
+import com.meditrack.meditrack_backend.dto.MedicalHistoryResponse;
 import com.meditrack.meditrack_backend.dto.PatientResponse;
 import com.meditrack.meditrack_backend.entity.Appointment;
+import com.meditrack.meditrack_backend.service.AppointmentService;
 import com.meditrack.meditrack_backend.service.PatientService;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,13 +19,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/patients")
+@RequiredArgsConstructor
 public class PatientController {
 
     private final PatientService patientService;
+    private final AppointmentService appointmentService;
 
-    public PatientController(PatientService patientService){
-        this.patientService = patientService;
-    }
 
     @GetMapping("/{patientId}/appointments/past")
     public ResponseEntity<List<PatientResponse>> getPastAppointments(
@@ -28,6 +32,12 @@ public class PatientController {
     ){
         List<Appointment> appointments = patientService.getPastAppointments(patientId);
         return ResponseEntity.ok(appointments.stream().map(this::toResponse).toList());
+    }
+
+    @GetMapping("/{patientId}/medical-history")
+    public ResponseEntity<MedicalHistoryResponse> getPatientMedicalHistory(@PathVariable Long patientId) {
+        MedicalHistoryResponse medicalHistory = appointmentService.getPatientMedicalHistory(patientId);
+        return ResponseEntity.ok(medicalHistory);
     }
 
     private PatientResponse toResponse(Appointment appointment) {
