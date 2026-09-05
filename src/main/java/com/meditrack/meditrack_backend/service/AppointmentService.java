@@ -105,4 +105,48 @@ public class AppointmentService {
 
         return appointmentRepository.save(appointment);
     }
+
+
+    @Transactional(readOnly = true)
+    public MedicalHistoryResponse getPatientMedicalHistory(Long patientId) {
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id: " + patientId));
+
+        List<Appointment> appointments = appointmentRepository.findByPatientIdOrderByCreatedAtDesc(patientId);
+
+        List<MedicalHistoryResponse.ConsultationRecordDto> history = appointments.stream()
+                .map(apt -> MedicalHistoryResponse.ConsultationRecordDto.builder()
+                        .appointmentId(apt.getId())
+                        .doctorName(apt.getDoctor().getFirstName() + " " + apt.getDoctor().getLastName())
+                        .specialization(apt.getDoctor().getSpecialization())
+                        .date(apt.getCreatedAt())
+                        .diagnosis(apt.getNotes() != null ? apt.getNotes() : "No formal diagnosis recorded")
+                        .prescription("Standard Follow-up Prescription")
+                        .notes(apt.getNotes())
+                        .build())
+                .toList();
+
+        return MedicalHistoryResponse.builder()
+                .patientId(patient.getId())
+                .patientName(patient.getFirstName() + " " + patient.getLastName())
+                .history(history)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PendingReferralResponse> getPendingAppointmentsForDoctor(Long doctorId) {
+        List<Appointment> appointments = appointmentRepository
+                .findByDoctorIdAndStatusOrderByCreatedAtDesc(doctorId, AppointmentStatus.PENDING);
+
+        return appointments.stream()
+                .map(apt -> PendingReferralResponse.builder()
+                        .id(apt.getId())
+                        .patientId(apt.getPatient().getId())
+                        .patientName(apt.getPatient().getFirstName() + " " + apt.getPatient().getLastName())
+                        .notes(apt.getNotes())
+                        .status(apt.getStatus().name())
+                        .createdAt(apt.getCreatedAt())
+                        .build())
+                .toList();
+    }
 }
