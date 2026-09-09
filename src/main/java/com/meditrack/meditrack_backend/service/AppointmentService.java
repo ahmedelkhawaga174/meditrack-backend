@@ -2,6 +2,7 @@ package com.meditrack.meditrack_backend.service;
 
 import com.meditrack.meditrack_backend.dto.MedicalHistoryResponse;
 import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
+import com.meditrack.meditrack_backend.dto.ViewUpComingAppointmentResponse;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.entity.AvailabilitySlot;
 import com.meditrack.meditrack_backend.entity.Doctor;
@@ -148,5 +149,24 @@ public class AppointmentService {
                         .createdAt(apt.getCreatedAt())
                         .build())
                 .toList();
+    }
+
+    public List<ViewUpComingAppointmentResponse> viewUpComingAppointment(Long doctorId) {
+
+        List<ViewUpComingAppointmentResponse> appointments = appointmentRepository.findByDoctorId(doctorId)
+                .stream()
+                .map(apt -> ViewUpComingAppointmentResponse
+                        .builder()
+                        .patientName(apt.getPatient().getFirstName() + " " + apt.getPatient().getLastName())
+                        .patientId(apt.getPatient().getId())
+                        .slot(ViewUpComingAppointmentResponse.AvailabilitySlotResponse
+                                .builder()
+                                .startTime(apt.getSlot().getStartTime())
+                                .endTime(apt.getSlot().getEndTime())
+                                .build())
+                        .date(apt.getSlot().getDate())
+                        .build()).toList();
+
+        return appointments;
     }
 }

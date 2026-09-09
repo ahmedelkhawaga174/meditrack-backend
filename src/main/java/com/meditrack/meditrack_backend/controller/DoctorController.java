@@ -2,6 +2,7 @@ package com.meditrack.meditrack_backend.controller;
 
 import com.meditrack.meditrack_backend.dto.DoctorResponse;
 import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
+import com.meditrack.meditrack_backend.dto.ViewUpComingAppointmentResponse;
 import com.meditrack.meditrack_backend.service.AppointmentService;
 import com.meditrack.meditrack_backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +42,13 @@ public class DoctorController {
 
         List<PendingReferralResponse> pendingReferrals = appointmentService.getPendingAppointmentsForDoctor(doctorId);
         return ResponseEntity.ok(pendingReferrals);
+    }
+
+    @GetMapping("{doctorId}/appointments/upcoming")
+    public ResponseEntity<List<ViewUpComingAppointmentResponse>> viewUpComingAppointment(@PathVariable Long doctorId) {
+
+        List<ViewUpComingAppointmentResponse> upComingAppointment = appointmentService.viewUpComingAppointment(doctorId);
+
+        return ResponseEntity.ok(upComingAppointment);
     }
 }
