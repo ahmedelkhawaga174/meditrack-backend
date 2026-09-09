@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -155,6 +156,8 @@ public class AppointmentService {
 
         List<ViewUpComingAppointmentResponse> appointments = appointmentRepository.findByDoctorId(doctorId)
                 .stream()
+                .filter(apt ->  apt.getSlot().getDate().isEqual(LocalDate.now())
+                        || apt.getSlot().getDate().isAfter(LocalDate.now()))
                 .map(apt -> ViewUpComingAppointmentResponse
                         .builder()
                         .patientName(apt.getPatient().getFirstName() + " " + apt.getPatient().getLastName())
