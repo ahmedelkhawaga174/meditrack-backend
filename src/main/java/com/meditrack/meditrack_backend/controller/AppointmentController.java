@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.meditrack.meditrack_backend.dto.RescheduleAppointmentRequest;
 
 import java.util.List;
 
@@ -80,6 +81,31 @@ public class AppointmentController {
 
         Appointment appointment =
                 appointmentService.checkInPatient(id);
+
+        return ResponseEntity.ok(toResponse(appointment));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<AppointmentResponse> cancelAppointment(
+            @PathVariable Long id
+    ) {
+
+        Appointment appointment =
+                appointmentService.cancelAppointment(id);
+
+        return ResponseEntity.ok(toResponse(appointment));
+    }
+    @PatchMapping("/{id}/reschedule")
+    public ResponseEntity<AppointmentResponse> rescheduleAppointment(
+            @PathVariable Long id,
+            @Valid @RequestBody RescheduleAppointmentRequest request
+    ) {
+
+        Appointment appointment =
+                appointmentService.rescheduleAppointment(
+                        id,
+                        request.getNewSlotId()
+                );
 
         return ResponseEntity.ok(toResponse(appointment));
     }
