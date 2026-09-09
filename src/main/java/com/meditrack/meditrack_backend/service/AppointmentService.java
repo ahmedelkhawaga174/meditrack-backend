@@ -2,6 +2,7 @@ package com.meditrack.meditrack_backend.service;
 
 import com.meditrack.meditrack_backend.dto.MedicalHistoryResponse;
 import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
+import com.meditrack.meditrack_backend.dto.ViewUpComingAppointmentResponse;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.entity.AvailabilitySlot;
 import com.meditrack.meditrack_backend.entity.Doctor;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -239,5 +241,26 @@ public class AppointmentService {
         availabilitySlotRepository.save(newSlot);
 
         return appointmentRepository.save(appointment);
+    }
+
+    public List<ViewUpComingAppointmentResponse> viewUpComingAppointment(Long doctorId) {
+
+        List<ViewUpComingAppointmentResponse> appointments = appointmentRepository.findByDoctorId(doctorId)
+                .stream()
+                .filter(apt ->  apt.getSlot().getDate().isEqual(LocalDate.now())
+                        || apt.getSlot().getDate().isAfter(LocalDate.now()))
+                .map(apt -> ViewUpComingAppointmentResponse
+                        .builder()
+                        .patientName(apt.getPatient().getFirstName() + " " + apt.getPatient().getLastName())
+                        .patientId(apt.getPatient().getId())
+                        .slot(ViewUpComingAppointmentResponse.AvailabilitySlotResponse
+                                .builder()
+                                .startTime(apt.getSlot().getStartTime())
+                                .endTime(apt.getSlot().getEndTime())
+                                .build())
+                        .date(apt.getSlot().getDate())
+                        .build()).toList();
+
+        return appointments;
     }
 }
