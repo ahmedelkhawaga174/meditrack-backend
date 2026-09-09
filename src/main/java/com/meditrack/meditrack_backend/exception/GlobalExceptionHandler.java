@@ -88,4 +88,13 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(response);
     }
+
+    @ExceptionHandler(SlotAlreadyBookedException.class)
+    public ResponseEntity<String> handleSlotAlreadyBooked(
+            SlotAlreadyBookedException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ex.getMessage());
+    }
 }

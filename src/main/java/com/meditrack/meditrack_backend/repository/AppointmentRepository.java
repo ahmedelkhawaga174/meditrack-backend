@@ -8,11 +8,29 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
-    List<Appointment> findUpcomingByPatientId(Long patiendId, LocalDate now);
 
-    List<Appointment> findPastByPatientId(Long patientId, LocalDate now);
+    boolean existsBySlotIdAndIdNotAndStatusIn(
+            Long slotId,
+            Long appointmentId,
+            List<AppointmentStatus> statuses
+    );
 
-    List<Appointment> findByDoctorIdAndStatusOrderByCreatedAtDesc(Long doctorId, AppointmentStatus status);
+    List<Appointment> findUpcomingByPatientId(
+            Long patiendId,
+            LocalDate now
+    );
 
-    List<Appointment> findByPatientIdOrderByCreatedAtDesc(Long patientId);
+    List<Appointment> findPastByPatientId(
+            Long patientId,
+            LocalDate now
+    );
+
+    List<Appointment> findByDoctorIdAndStatusOrderByCreatedAtDesc(
+            Long doctorId,
+            AppointmentStatus status
+    );
+
+    List<Appointment> findByPatientIdOrderByCreatedAtDesc(
+            Long patientId
+    );
 }

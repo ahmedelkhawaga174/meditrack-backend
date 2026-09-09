@@ -23,6 +23,19 @@ public class PatientController {
     private final PatientService patientService;
     private final AppointmentService appointmentService;
 
+    @GetMapping("/{patientId}/appointments/date")
+    public ResponseEntity<List<PatientResponse>> getUpcomingAppointments(
+            @PathVariable Long patientId
+    ) {
+        List<Appointment> appointments =
+                patientService.getUpcomingAppointments(patientId);
+
+        return ResponseEntity.ok(
+                appointments.stream()
+                        .map(this::toResponse)
+                        .toList()
+        );
+    }
 
     @GetMapping("/{patientId}/appointments/past")
     public ResponseEntity<List<PatientResponse>> getPastAppointments(

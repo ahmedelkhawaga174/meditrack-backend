@@ -7,15 +7,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "appointments",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_appointment_slot",
-                        columnNames = "slot_id"
-                )
-        }
-)
+@Table(name = "appointments")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,8 +27,8 @@ public class Appointment {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
-    @OneToOne
-    @JoinColumn(name = "slot_id", nullable = false, unique = true)
+    @ManyToOne
+    @JoinColumn(name = "slot_id", nullable = false)
     private AvailabilitySlot slot;
 
     @Enumerated(EnumType.STRING)

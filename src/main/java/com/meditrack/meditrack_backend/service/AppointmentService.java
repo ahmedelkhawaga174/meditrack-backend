@@ -9,6 +9,7 @@ import com.meditrack.meditrack_backend.entity.Patient;
 import com.meditrack.meditrack_backend.enums.AppointmentStatus;
 import com.meditrack.meditrack_backend.enums.SlotStatus;
 import com.meditrack.meditrack_backend.exception.ResourceNotFoundException;
+import com.meditrack.meditrack_backend.exception.SlotAlreadyBookedException;
 import com.meditrack.meditrack_backend.repository.AppointmentRepository;
 import com.meditrack.meditrack_backend.repository.AvailabilitySlotRepository;
 import com.meditrack.meditrack_backend.repository.DoctorRepository;
@@ -148,5 +149,95 @@ public class AppointmentService {
                         .createdAt(apt.getCreatedAt())
                         .build())
                 .toList();
+    }
+
+    @Transactional
+    public Appointment cancelAppointment(Long appointmentId) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Appointment not found"
+                        ));
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new IllegalStateException(
+                    "Appointment is already cancelled"
+            );
+        }
+
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+
+        AvailabilitySlot slot = appointment.getSlot();
+        slot.setStatus(SlotStatus.AVAILABLE);
+        availabilitySlotRepository.save(slot);
+
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public Appointment rescheduleAppointment(
+            Long appointmentId,
+            Long newSlotId
+    ) {
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Appointment not found"));
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED ||
+                appointment.getStatus() == AppointmentStatus.COMPLETED ||
+                appointment.getStatus() == AppointmentStatus.NO_SHOW ||
+                appointment.getStatus() == AppointmentStatus.CHECKED_IN) {
+
+            throw new IllegalStateException(
+                    "This appointment cannot be rescheduled"
+            );
+        }
+
+        AvailabilitySlot newSlot = availabilitySlotRepository
+                .findById(newSlotId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Slot not found"));
+
+        if (newSlot.getStatus() != SlotStatus.AVAILABLE) {
+            throw new SlotAlreadyBookedException(
+                    "The new slot is already booked"
+            );
+        }
+
+        if (appointmentRepository.existsBySlotIdAndIdNotAndStatusIn(
+                newSlotId,
+                appointmentId,
+                List.of(
+                        AppointmentStatus.PENDING,
+                        AppointmentStatus.CONFIRMED,
+                        AppointmentStatus.CHECKED_IN
+                )
+        )) {
+            throw new SlotAlreadyBookedException(
+                    "The new slot is already booked by another appointment"
+            );
+        }
+
+        if (!newSlot.getDoctor().getId().equals(
+                appointment.getDoctor().getId()
+        )) {
+            throw new IllegalArgumentException(
+                    "The new slot does not belong to this doctor"
+            );
+        }
+
+        AvailabilitySlot oldSlot = appointment.getSlot();
+
+        oldSlot.setStatus(SlotStatus.AVAILABLE);
+        newSlot.setStatus(SlotStatus.BOOKED);
+
+        appointment.setSlot(newSlot);
+
+        availabilitySlotRepository.save(oldSlot);
+        availabilitySlotRepository.save(newSlot);
+
+        return appointmentRepository.save(appointment);
     }
 }
