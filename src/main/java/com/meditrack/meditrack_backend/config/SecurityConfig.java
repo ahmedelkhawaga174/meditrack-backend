@@ -21,7 +21,18 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
+                        // Authentication endpoints are public
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // Doctor discovery is public
+                        .requestMatchers("/api/doctors/**").permitAll()
+
+                        // Patient and appointment data require login
+                        .requestMatchers("/api/patients/**").authenticated()
+                        .requestMatchers("/api/appointments/**").authenticated()
+
+                        // Everything else requires authentication
+                        .anyRequest().authenticated()
                 );
 
         return http.build();
@@ -37,7 +48,14 @@ public class SecurityConfig {
         );
 
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE",
+                        "OPTIONS"
+                )
         );
 
         configuration.setAllowedHeaders(

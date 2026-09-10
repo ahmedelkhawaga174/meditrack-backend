@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public class LoginResponse {
 
     private Long userId;
-    private String username;
+    private String phone;
     private UserRole role;
     private LocalDateTime lastLoginAt;
     private String message;
@@ -17,13 +17,13 @@ public class LoginResponse {
 
     public LoginResponse(
             Long userId,
-            String username,
+            String phone,
             UserRole role,
             LocalDateTime lastLoginAt,
             String message
     ) {
         this.userId = userId;
-        this.username = username;
+        this.phone = phone;
         this.role = role;
         this.lastLoginAt = lastLoginAt;
         this.message = message;
@@ -33,8 +33,8 @@ public class LoginResponse {
         return userId;
     }
 
-    public String getUsername() {
-        return username;
+    public String getPhone() {
+        return phone;
     }
 
     public UserRole getRole() {

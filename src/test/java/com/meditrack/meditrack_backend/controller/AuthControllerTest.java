@@ -1,7 +1,7 @@
 package com.meditrack.meditrack_backend.controller;
 
 import com.meditrack.meditrack_backend.dto.LoginResponse;
-import com.meditrack.meditrack_backend.enums.UserRole;
+import com.meditrack.meditrack_backend.dto.RegisterResponse;
 import com.meditrack.meditrack_backend.service.AuthService;
 
 import org.junit.jupiter.api.Test;
@@ -39,8 +39,8 @@ class AuthControllerTest {
 
         LoginResponse loginResponse = new LoginResponse(
                 5L,
-                "patient_mostafa",
-                UserRole.PATIENT,
+                "01055556666",
+                com.meditrack.meditrack_backend.enums.UserRole.PATIENT,
                 LocalDateTime.of(2026, 9, 3, 10, 0),
                 "Login successful"
         );
@@ -53,14 +53,14 @@ class AuthControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
-                                          "username": "patient_mostafa",
+                                          "phone": "01055556666",
                                           "password": "pass123"
                                         }
                                         """)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(5))
-                .andExpect(jsonPath("$.username").value("patient_mostafa"))
+                .andExpect(jsonPath("$.phone").value("01055556666"))
                 .andExpect(jsonPath("$.role").value("PATIENT"))
                 .andExpect(jsonPath("$.message").value("Login successful"));
     }
@@ -76,7 +76,7 @@ class AuthControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
-                                          "username": "patient_mostafa",
+                                          "phone": "01055556666",
                                           "password": "wrong_password"
                                         }
                                         """)
@@ -84,24 +84,191 @@ class AuthControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.error").value("Unauthorized"))
-                .andExpect(jsonPath("$.message").value("Invalid username or password"));
+                .andExpect(jsonPath("$.message")
+                        .value("Invalid phone or password"));
     }
 
     @Test
-    void shouldReturnBadRequestWhenUsernameIsMissing() throws Exception {
+    void shouldReturnBadRequestWhenPhoneIsMissing() throws Exception {
 
         mockMvc.perform(
                         post("/api/auth/login")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
-                                          "username": "",
+                                          "phone": "",
                                           "password": "pass123"
                                         }
                                         """)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Validation Failed"))
-                .andExpect(jsonPath("$.messages.username").value("Username is required"));
+                .andExpect(jsonPath("$.error")
+                        .value("Validation Failed"))
+                .andExpect(jsonPath("$.messages.phone")
+                        .value("Phone is required"));
+    }
+
+    @Test
+    void shouldRegisterPatientSuccessfully() throws Exception {
+
+        RegisterResponse response = new RegisterResponse(
+                20L,
+                "01077778888",
+                "Registration successful. OTP sent."
+        );
+
+        when(authService.registerPatient(any()))
+                .thenReturn(response);
+
+        mockMvc.perform(
+                        post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "phone": "01077778888",
+                                          "password": "pass123",
+                                          "firstName": "Mostafa",
+                                          "lastName": "Ahmed"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.patientId").value(20))
+                .andExpect(jsonPath("$.phone").value("01077778888"))
+                .andExpect(jsonPath("$.message")
+                        .value("Registration successful. OTP sent."));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenRegistrationPhoneIsMissing()
+            throws Exception {
+
+        mockMvc.perform(
+                        post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "phone": "",
+                                          "password": "pass123",
+                                          "firstName": "Mostafa",
+                                          "lastName": "Ahmed"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error")
+                        .value("Validation Failed"))
+                .andExpect(jsonPath("$.messages.phone")
+                        .value("Phone is required"));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenRegistrationPasswordIsTooShort()
+            throws Exception {
+
+        mockMvc.perform(
+                        post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "phone": "01077778888",
+                                          "password": "123",
+                                          "firstName": "Mostafa",
+                                          "lastName": "Ahmed"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error")
+                        .value("Validation Failed"))
+                .andExpect(jsonPath("$.messages.password")
+                        .value("Password must be at least 6 characters"));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenRegistrationFirstNameIsMissing()
+            throws Exception {
+
+        mockMvc.perform(
+                        post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "phone": "01077778888",
+                                          "password": "pass123",
+                                          "firstName": "",
+                                          "lastName": "Ahmed"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error")
+                        .value("Validation Failed"))
+                .andExpect(jsonPath("$.messages.firstName")
+                        .value("First name is required"));
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenRegistrationLastNameIsMissing()
+            throws Exception {
+
+        mockMvc.perform(
+                        post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "phone": "01077778888",
+                                          "password": "pass123",
+                                          "firstName": "Mostafa",
+                                          "lastName": ""
+                                        }
+                                        """)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error")
+                        .value("Validation Failed"))
+                .andExpect(jsonPath("$.messages.lastName")
+                        .value("Last name is required"));
+    }
+
+    @Test
+    void shouldVerifyOtpSuccessfully() throws Exception {
+
+        mockMvc.perform(
+                        post("/api/auth/verify-otp")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "phone": "01077778888",
+                                          "otp": "123456"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isOk())
+                .andExpect(
+                        jsonPath("$")
+                                .value("OTP verified successfully")
+                );
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenOtpIsInvalidFormat()
+            throws Exception {
+
+        mockMvc.perform(
+                        post("/api/auth/verify-otp")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                          "phone": "01077778888",
+                                          "otp": "12345"
+                                        }
+                                        """)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error")
+                        .value("Validation Failed"))
+                .andExpect(jsonPath("$.messages.otp")
+                        .value("OTP must be 6 digits"));
     }
 }

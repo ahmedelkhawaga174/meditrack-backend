@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
                 "timestamp", LocalDateTime.now(),
                 "status", 401,
                 "error", "Unauthorized",
-                "message", "Invalid username or password"
+                "message", "Invalid phone or password"
         );
 
         return ResponseEntity

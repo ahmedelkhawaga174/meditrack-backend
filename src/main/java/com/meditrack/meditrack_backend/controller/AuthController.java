@@ -2,15 +2,15 @@ package com.meditrack.meditrack_backend.controller;
 
 import com.meditrack.meditrack_backend.dto.LoginRequest;
 import com.meditrack.meditrack_backend.dto.LoginResponse;
+import com.meditrack.meditrack_backend.dto.RegisterRequest;
+import com.meditrack.meditrack_backend.dto.RegisterResponse;
+import com.meditrack.meditrack_backend.dto.VerifyOtpRequest;
 import com.meditrack.meditrack_backend.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,6 +28,35 @@ public class AuthController {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse
     ) {
-        return ResponseEntity.ok(authService.login(request, httpRequest, httpResponse));
+        return ResponseEntity.ok(
+                authService.login(
+                        request,
+                        httpRequest,
+                        httpResponse
+                )
+        );
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponse> register(
+            @Valid @RequestBody RegisterRequest request
+    ) {
+        return ResponseEntity.ok(
+                authService.registerPatient(request)
+        );
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(
+            @Valid @RequestBody VerifyOtpRequest request
+    ) {
+        authService.verifyOtp(
+                request.getPhone(),
+                request.getOtp()
+        );
+
+        return ResponseEntity.ok(
+                "OTP verified successfully"
+        );
     }
 }

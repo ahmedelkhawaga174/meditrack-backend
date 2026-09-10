@@ -19,19 +19,23 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String phone) throws UsernameNotFoundException {
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        User user = userRepository.findByPhone(phone)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found with phone: " + phone)
+                );
 
         if (user.getPasswordHash() == null) {
-            throw new UsernameNotFoundException("User has no credentials: " + username);
+            throw new UsernameNotFoundException("User has no credentials: " + phone);
         }
 
         return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
+                .withUsername(user.getPhone())
                 .password(user.getPasswordHash())
-                .authorities(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                .authorities(
+                        new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+                )
                 .disabled(user.getStatus() != UserStatus.ACTIVE)
                 .build();
     }
