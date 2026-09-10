@@ -23,6 +23,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Authentication endpoints are public
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/consultations/**").permitAll()
 
                         // Doctor discovery is public
                         .requestMatchers("/api/doctors/**").permitAll()
