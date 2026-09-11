@@ -62,6 +62,7 @@ public class AuthService {
             HttpServletResponse httpResponse
     ) {
 
+        // Authenticate user using phone and password
         Authentication authentication = authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken.unauthenticated(
                         request.getPhone(),
@@ -69,6 +70,7 @@ public class AuthService {
                 )
         );
 
+        // Create security context
         SecurityContext securityContext =
                 securityContextHolderStrategy.createEmptyContext();
 
@@ -76,12 +78,14 @@ public class AuthService {
 
         securityContextHolderStrategy.setContext(securityContext);
 
+        // Save session
         securityContextRepository.saveContext(
                 securityContext,
                 httpRequest,
                 httpResponse
         );
 
+        // Get authenticated user
         User user = userRepository.findByPhone(authentication.getName())
                 .orElseThrow(() ->
                         new BadCredentialsException(
@@ -89,26 +93,46 @@ public class AuthService {
                         )
                 );
 
+        /// Update last login time
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
+// Get patientId if the logged-in user is a patient
+        Long patientId = null;
+
+        if (user.getRole() == UserRole.PATIENT) {
+
+            patientId = patientRepository.findByUser_Id(user.getId())
+                    .map(Patient::getId)
+                    .orElseThrow(() ->
+                            new BadCredentialsException(
+                                    "Patient profile not found"
+                            )
+                    );
+        }
+
+// Return login response
         return new LoginResponse(
                 user.getId(),
+                patientId,
                 user.getPhone(),
                 user.getRole(),
                 user.getLastLoginAt(),
                 "Login successful"
         );
     }
+
     @Transactional
     public RegisterResponse registerPatient(RegisterRequest request) {
 
+        // Check if phone already exists
         if (userRepository.existsByPhone(request.getPhone())) {
             throw new IllegalArgumentException(
                     "Phone number is already registered"
             );
         }
 
+        // Create user
         User user = User.builder()
                 .phone(request.getPhone())
                 .passwordHash(
@@ -120,6 +144,7 @@ public class AuthService {
 
         userRepository.save(user);
 
+        // Create patient profile
         Patient patient = Patient.builder()
                 .user(user)
                 .firstName(request.getFirstName())
@@ -130,6 +155,7 @@ public class AuthService {
 
         patientRepository.save(patient);
 
+        // Generate and send OTP
         otpService.generateAndSendOtp(user);
 
         return new RegisterResponse(
@@ -138,6 +164,7 @@ public class AuthService {
                 "Registration successful. OTP sent."
         );
     }
+
     @Transactional
     public void verifyOtp(String phone, String otp) {
         otpService.verifyOtp(phone, otp);

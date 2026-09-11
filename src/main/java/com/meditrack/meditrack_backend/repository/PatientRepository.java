@@ -12,6 +12,8 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     Optional<Patient> findByUserPhone(String phone);
 
+    Optional<Patient> findByUser_Id(Long userId);
+
     @Query("""
             SELECT p
             FROM Patient p

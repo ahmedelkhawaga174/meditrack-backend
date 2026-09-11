@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 public class LoginResponse {
 
     private Long userId;
+    private Long patientId;
     private String phone;
     private UserRole role;
     private LocalDateTime lastLoginAt;
@@ -15,6 +16,24 @@ public class LoginResponse {
     public LoginResponse() {
     }
 
+    // New constructor
+    public LoginResponse(
+            Long userId,
+            Long patientId,
+            String phone,
+            UserRole role,
+            LocalDateTime lastLoginAt,
+            String message
+    ) {
+        this.userId = userId;
+        this.patientId = patientId;
+        this.phone = phone;
+        this.role = role;
+        this.lastLoginAt = lastLoginAt;
+        this.message = message;
+    }
+
+    // Old constructor - kept for existing tests
     public LoginResponse(
             Long userId,
             String phone,
@@ -23,6 +42,7 @@ public class LoginResponse {
             String message
     ) {
         this.userId = userId;
+        this.patientId = null;
         this.phone = phone;
         this.role = role;
         this.lastLoginAt = lastLoginAt;
@@ -31,6 +51,10 @@ public class LoginResponse {
 
     public Long getUserId() {
         return userId;
+    }
+
+    public Long getPatientId() {
+        return patientId;
     }
 
     public String getPhone() {
