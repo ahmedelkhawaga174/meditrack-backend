@@ -22,13 +22,14 @@ public class ReferralService {
         Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found with ID: " + request.getAppointmentId()));
 
+        Doctor currentDoctor = appointment.getDoctor();
+
         Doctor targetDoctor = doctorRepository.findById(request.getReferredToDoctorId())
                 .orElseThrow(() -> new IllegalArgumentException("Target Doctor not found with ID: " + request.getReferredToDoctorId()));
 
-        String referralText = String.format("[REFERRAL to Dr. %s %s (ID: %d)] Reason: %s%s",
-                targetDoctor.getFirstName(),
-                targetDoctor.getLastName(),
-                targetDoctor.getId(),
+        String referralText = String.format("[REFERRAL from Dr. %s %s to Dr. %s %s] Reason: %s%s",
+                currentDoctor.getFirstName(), currentDoctor.getLastName(),
+                targetDoctor.getFirstName(), targetDoctor.getLastName(),
                 request.getReason(),
                 (request.getNotes() != null && !request.getNotes().isBlank()) ? " | Notes: " + request.getNotes() : ""
         );
@@ -45,8 +46,8 @@ public class ReferralService {
                 .appointmentId(updatedAppointment.getId())
                 .patientId(updatedAppointment.getPatient().getId())
                 .patientName(updatedAppointment.getPatient().getFirstName() + " " + updatedAppointment.getPatient().getLastName())
-                .currentDoctorId(updatedAppointment.getDoctor().getId())
-                .currentDoctorName("Dr. " + updatedAppointment.getDoctor().getFirstName() + " " + updatedAppointment.getDoctor().getLastName())
+                .currentDoctorId(currentDoctor.getId())
+                .currentDoctorName("Dr. " + currentDoctor.getFirstName() + " " + currentDoctor.getLastName())
                 .referredToDoctorId(targetDoctor.getId())
                 .referredToDoctorName("Dr. " + targetDoctor.getFirstName() + " " + targetDoctor.getLastName())
                 .referralDetails(referralText)

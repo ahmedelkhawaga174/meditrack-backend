@@ -1,9 +1,11 @@
 package com.meditrack.meditrack_backend.controller;
 
+import com.meditrack.meditrack_backend.dto.DoctorPatientDto;
 import com.meditrack.meditrack_backend.dto.DoctorResponse;
 import com.meditrack.meditrack_backend.dto.PendingReferralResponse;
 import com.meditrack.meditrack_backend.dto.ViewUpComingAppointmentResponse;
 import com.meditrack.meditrack_backend.service.AppointmentService;
+import com.meditrack.meditrack_backend.service.DoctorPatientService;
 import com.meditrack.meditrack_backend.service.DoctorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,6 +23,7 @@ public class DoctorController {
 
     private final DoctorService doctorService;
     private final AppointmentService appointmentService;
+    private final DoctorPatientService doctorPatientService;
 
     @GetMapping
     public ResponseEntity<List<DoctorResponse>> getAvailableDoctors(
@@ -50,5 +53,11 @@ public class DoctorController {
         List<ViewUpComingAppointmentResponse> upComingAppointment = appointmentService.viewUpComingAppointment(doctorId);
 
         return ResponseEntity.ok(upComingAppointment);
+    }
+
+    @GetMapping("{doctorId}/patients")
+    public ResponseEntity<List<DoctorPatientDto>> getDoctorPatients(@PathVariable Long doctorId) {
+        List<DoctorPatientDto> patients = doctorPatientService.getPatientsByDoctor(doctorId);
+        return ResponseEntity.ok(patients);
     }
 }
