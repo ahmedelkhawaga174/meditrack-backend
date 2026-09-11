@@ -1,13 +1,11 @@
 package com.meditrack.meditrack_backend.controller;
 
-import com.meditrack.meditrack_backend.dto.ConsultationRequest;
-import com.meditrack.meditrack_backend.dto.ConsultationResponse;
-import com.meditrack.meditrack_backend.dto.DiagnosisResponse;
-import com.meditrack.meditrack_backend.dto.RecordDiagnosisRequest;
+import com.meditrack.meditrack_backend.dto.*;
 import com.meditrack.meditrack_backend.service.ConsultationService;
 import com.meditrack.meditrack_backend.service.DiagnosisService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,5 +31,20 @@ public class ConsultationController {
 
         DiagnosisResponse response = diagnosisService.recordDiagnosis(consultationId, request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{consultationId}/notes")
+    public ResponseEntity<ConsultationResponse> createNote(
+            @PathVariable Long consultationId,
+            @Valid @RequestBody NoteRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(consultationService.addNoteToConsultation(consultationId, request));
+    }
+
+    @PutMapping("/{consultationId}/notes/{noteId}")
+    public ResponseEntity<ConsultationResponse> updateNote(
+            @PathVariable Long consultationId,
+            @PathVariable Long noteId,
+            @Valid @RequestBody NoteRequest request) {
+        return ResponseEntity.ok(consultationService.updateConsultationNote(consultationId, request));
     }
 }
