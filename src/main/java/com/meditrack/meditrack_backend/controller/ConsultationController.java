@@ -37,13 +37,13 @@ public class ConsultationController {
     public ResponseEntity<ConsultationResponse> createNote(
             @PathVariable Long consultationId,
             @Valid @RequestBody NoteRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(consultationService.addNoteToConsultation(consultationId, request));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(consultationService.addNoteToConsultation(consultationId, request));
     }
 
-    @PutMapping("/{consultationId}/notes/{noteId}")
+    @PutMapping("/{consultationId}/notes")
     public ResponseEntity<ConsultationResponse> updateNote(
             @PathVariable Long consultationId,
-            @PathVariable Long noteId,
             @Valid @RequestBody NoteRequest request) {
         return ResponseEntity.ok(consultationService.updateConsultationNote(consultationId, request));
     }

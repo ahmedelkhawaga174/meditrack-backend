@@ -17,23 +17,32 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
+//        http
+//                .cors(cors -> {})
+//                .csrf(csrf -> csrf.disable())
+//                .authorizeHttpRequests(auth -> auth
+//                        // Authentication endpoints are public
+//                        .requestMatchers("/api/auth/**").permitAll()
+//                        .requestMatchers("/api/consultations/**").permitAll()
+//
+//                        // Doctor discovery is public
+//                        .requestMatchers("/api/doctors/**").permitAll()
+//
+//                        // Patient and appointment data require login
+//                        .requestMatchers("/api/patients/**").authenticated()
+//                        .requestMatchers("/api/appointments/**").authenticated()
+//
+//                        // Everything else requires authentication
+//                        .anyRequest().authenticated()
+//                );
+//
+//        return http.build();
+
         http
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Authentication endpoints are public
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/consultations/**").permitAll()
-
-                        // Doctor discovery is public
-                        .requestMatchers("/api/doctors/**").permitAll()
-
-                        // Patient and appointment data require login
-                        .requestMatchers("/api/patients/**").authenticated()
-                        .requestMatchers("/api/appointments/**").authenticated()
-
-                        // Everything else requires authentication
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 );
 
         return http.build();
