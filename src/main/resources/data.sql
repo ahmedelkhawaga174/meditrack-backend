@@ -318,7 +318,7 @@ INSERT INTO availability_slots (
 )
 SELECT
     d.id,
-    '2026-09-11',
+    '2026-09-15',
     '09:00:00',
     '09:30:00',
     'AVAILABLE'
@@ -329,7 +329,7 @@ WHERE u.phone = '01011112222'
       SELECT 1
       FROM availability_slots s
       WHERE s.doctor_id = d.id
-        AND s.date = '2026-09-11'
+        AND s.date = '2026-09-15'
         AND s.start_time = '09:00:00'
   );
 
@@ -342,7 +342,7 @@ INSERT INTO availability_slots (
 )
 SELECT
     d.id,
-    '2026-09-11',
+    '2026-09-15',
     '09:30:00',
     '10:00:00',
     'AVAILABLE'
@@ -353,7 +353,7 @@ WHERE u.phone = '01011112222'
       SELECT 1
       FROM availability_slots s
       WHERE s.doctor_id = d.id
-        AND s.date = '2026-09-11'
+        AND s.date = '2026-09-15'
         AND s.start_time = '09:30:00'
   );
 
@@ -366,7 +366,7 @@ INSERT INTO availability_slots (
 )
 SELECT
     d.id,
-    '2026-09-11',
+    '2026-09-15',
     '10:00:00',
     '10:30:00',
     'BOOKED'
@@ -377,7 +377,7 @@ WHERE u.phone = '01011112222'
       SELECT 1
       FROM availability_slots s
       WHERE s.doctor_id = d.id
-        AND s.date = '2026-09-11'
+        AND s.date = '2026-09-15'
         AND s.start_time = '10:00:00'
   );
 
@@ -390,7 +390,7 @@ INSERT INTO availability_slots (
 )
 SELECT
     d.id,
-    '2026-09-11',
+    '2026-09-15',
     '11:00:00',
     '11:30:00',
     'AVAILABLE'
@@ -401,7 +401,7 @@ WHERE u.phone = '01022223333'
       SELECT 1
       FROM availability_slots s
       WHERE s.doctor_id = d.id
-        AND s.date = '2026-09-11'
+        AND s.date = '2026-09-15'
         AND s.start_time = '11:00:00'
   );
 
@@ -414,7 +414,7 @@ INSERT INTO availability_slots (
 )
 SELECT
     d.id,
-    '2026-09-11',
+    '2026-09-15',
     '12:00:00',
     '12:30:00',
     'AVAILABLE'
@@ -425,7 +425,7 @@ WHERE u.phone = '01022223333'
       SELECT 1
       FROM availability_slots s
       WHERE s.doctor_id = d.id
-        AND s.date = '2026-09-11'
+        AND s.date = '2026-09-15'
         AND s.start_time = '12:00:00'
   );
 
@@ -438,7 +438,7 @@ INSERT INTO availability_slots (
 )
 SELECT
     d.id,
-    '2026-09-11',
+    '2026-09-15',
     '14:00:00',
     '14:30:00',
     'AVAILABLE'
@@ -449,7 +449,7 @@ WHERE u.phone = '01033334444'
       SELECT 1
       FROM availability_slots s
       WHERE s.doctor_id = d.id
-        AND s.date = '2026-09-11'
+        AND s.date = '2026-09-15'
         AND s.start_time = '14:00:00'
   );
 
@@ -462,7 +462,7 @@ INSERT INTO availability_slots (
 )
 SELECT
     d.id,
-    '2026-09-11',
+    '2026-09-15',
     '14:30:00',
     '15:00:00',
     'AVAILABLE'
@@ -473,7 +473,7 @@ WHERE u.phone = '01033334444'
       SELECT 1
       FROM availability_slots s
       WHERE s.doctor_id = d.id
-        AND s.date = '2026-09-11'
+        AND s.date = '2026-09-15'
         AND s.start_time = '14:30:00'
   );
 
@@ -486,7 +486,7 @@ INSERT INTO availability_slots (
 )
 SELECT
     d.id,
-    '2026-09-11',
+    '2026-09-15',
     '16:00:00',
     '16:30:00',
     'BOOKED'
@@ -497,6 +497,45 @@ WHERE u.phone = '01044445555'
       SELECT 1
       FROM availability_slots s
       WHERE s.doctor_id = d.id
-        AND s.date = '2026-09-11'
+        AND s.date = '2026-09-15'
         AND s.start_time = '16:00:00'
   );
+-- ============================================================
+-- APPOINTMENTS
+-- ============================================================
+
+INSERT INTO appointments (
+    patient_id,
+    doctor_id,
+    slot_id,
+    status,
+    notes,
+    created_at
+)
+SELECT
+    p.id,
+    d.id,
+    s.id,
+    'PENDING',
+    'Patient requires urgent cardiac consultation.',
+    CURRENT_TIMESTAMP
+FROM patients p
+         JOIN users pu
+              ON pu.id = p.user_id
+         JOIN doctors d
+              ON d.id = (
+                  SELECT doc.id
+                  FROM doctors doc
+                           JOIN users du ON du.id = doc.user_id
+                  WHERE du.phone = '01011112222'
+              )
+         JOIN availability_slots s
+              ON s.doctor_id = d.id
+WHERE pu.phone = '01055556666'
+  AND s.date = '2026-09-15'
+  AND s.start_time = '09:00:00'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM appointments a
+    WHERE a.slot_id = s.id
+);
