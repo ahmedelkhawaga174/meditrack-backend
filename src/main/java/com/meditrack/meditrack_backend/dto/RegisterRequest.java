@@ -1,7 +1,11 @@
 package com.meditrack.meditrack_backend.dto;
 
+import com.meditrack.meditrack_backend.enums.Gender;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.time.LocalDate;
 
 public class RegisterRequest {
 
@@ -18,7 +22,31 @@ public class RegisterRequest {
     @NotBlank(message = "Last name is required")
     private String lastName;
 
+    @NotNull(message = "Date of birth is required")
+    private LocalDate dateOfBirth;
+
+    @NotNull(message = "Gender is required")
+    private Gender gender;
+
+
+
     public RegisterRequest() {
+    }
+
+    public RegisterRequest(
+            String phone,
+            String password,
+            String firstName,
+            String lastName,
+            LocalDate dateOfBirth,
+            Gender gender
+    ) {
+        this.phone = phone;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dateOfBirth = dateOfBirth;
+        this.gender = gender;
     }
 
     public RegisterRequest(
@@ -32,7 +60,6 @@ public class RegisterRequest {
         this.firstName = firstName;
         this.lastName = lastName;
     }
-
     public String getPhone() {
         return phone;
     }
@@ -63,5 +90,21 @@ public class RegisterRequest {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 }

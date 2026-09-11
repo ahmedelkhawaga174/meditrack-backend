@@ -100,7 +100,6 @@ public class AuthService {
                 "Login successful"
         );
     }
-
     @Transactional
     public RegisterResponse registerPatient(RegisterRequest request) {
 
@@ -125,6 +124,8 @@ public class AuthService {
                 .user(user)
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
+                .dateOfBirth(request.getDateOfBirth())
+                .gender(request.getGender())
                 .build();
 
         patientRepository.save(patient);
@@ -137,7 +138,6 @@ public class AuthService {
                 "Registration successful. OTP sent."
         );
     }
-
     @Transactional
     public void verifyOtp(String phone, String otp) {
         otpService.verifyOtp(phone, otp);
