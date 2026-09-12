@@ -25,7 +25,7 @@ public class ReferralController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ReferralResponse> getReferralDetails(@PathVariable Long id) {
-        ReferralResponse response = referralService.getReferralDetails(id);
+        ReferralResponse response = referralService.getReferralById(id);
         return ResponseEntity.ok(response);
     }
 }

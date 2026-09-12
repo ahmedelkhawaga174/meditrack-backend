@@ -1,7 +1,7 @@
 package com.meditrack.meditrack_backend.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,11 +14,10 @@ public class ReferralRequest {
     @NotNull(message = "Appointment ID is required")
     private Long appointmentId;
 
-    @NotNull(message = "Referred to Doctor ID is required")
+    @NotNull(message = "Target Doctor ID is required")
     private Long referredToDoctorId;
 
-    @NotBlank(message = "Reason for referral is required")
-    private String reason;
-
-    private String notes;
+    @NotNull(message = "Referral reason is required")
+    @Size(min = 5, message = "Reason must be at least 5 characters")
+    private String referralReason;
 }
