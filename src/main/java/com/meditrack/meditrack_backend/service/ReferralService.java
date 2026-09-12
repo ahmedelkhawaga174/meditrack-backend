@@ -54,12 +54,15 @@ public class ReferralService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReferralResponse> getPendingReferrals(Long doctorId) {
-        List<Referral> pendingList = (doctorId != null)
-                ? referralRepository.findByReferredToDoctorIdAndStatus(doctorId, ReferralStatus.PENDING)
-                : referralRepository.findByStatus(ReferralStatus.PENDING);
+    public List<ReferralResponse> getPendingReferralsForDoctor(Long doctorId) {
+        if (doctorId == null) {
+            throw new IllegalArgumentException("Doctor ID must be provided");
+        }
 
-        return pendingList.stream()
+        List<Referral> pendingReferrals = referralRepository
+                .findByReferredToDoctorIdAndStatus(doctorId, ReferralStatus.PENDING);
+
+        return pendingReferrals.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -70,9 +73,9 @@ public class ReferralService {
                 .orElseThrow(() -> new IllegalArgumentException("Referral not found with ID: " + referralId));
 
         referral.setStatus(newStatus);
-        Referral updatedReferral = referralRepository.save(referral);
+        Referral updated = referralRepository.save(referral);
 
-        return mapToResponse(updatedReferral);
+        return mapToResponse(updated);
     }
 
     private ReferralResponse mapToResponse(Referral referral) {
