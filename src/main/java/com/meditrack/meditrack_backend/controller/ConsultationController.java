@@ -3,6 +3,7 @@ package com.meditrack.meditrack_backend.controller;
 import com.meditrack.meditrack_backend.dto.*;
 import com.meditrack.meditrack_backend.service.ConsultationService;
 import com.meditrack.meditrack_backend.service.DiagnosisService;
+import com.meditrack.meditrack_backend.service.PrescriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ public class ConsultationController {
 
     private final ConsultationService consultationService;
     private final DiagnosisService diagnosisService;
+    private final PrescriptionService prescriptionService;
 
     @PostMapping
     public ResponseEntity<ConsultationResponse> recordConsultation(@Valid @RequestBody ConsultationRequest request) {
@@ -46,5 +48,20 @@ public class ConsultationController {
             @PathVariable Long consultationId,
             @Valid @RequestBody NoteRequest request) {
         return ResponseEntity.ok(consultationService.updateConsultationNote(consultationId, request));
+    }
+
+    @PostMapping("/{consultationId}/prescriptions")
+    public ResponseEntity<PrescriptionResponse> issuePrescription(
+            @PathVariable Long consultationId,
+            @Valid @RequestBody PrescriptionRequest request) {
+
+        PrescriptionResponse response =
+                prescriptionService.issueprescription(
+                        consultationId, request);
+
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 }
