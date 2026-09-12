@@ -539,3 +539,17 @@ WHERE pu.phone = '01055556666'
     FROM appointments a
     WHERE a.slot_id = s.id
 );
+
+INSERT INTO referrals (
+    appointment_id,
+    referred_to_doctor_id,
+    referral_reason,
+    status,
+    created_at
+)
+VALUES
+    (6, 2, 'Patient needs cardiology consultation.', 'PENDING', CURRENT_TIMESTAMP),
+    (2, 3, 'Patient requires neurological evaluation.', 'PENDING', CURRENT_TIMESTAMP),
+    (3, 2, 'Patient needs specialist follow-up.', 'PENDING', CURRENT_TIMESTAMP),
+    (8, 4, 'Patient requires additional medical assessment.', 'PENDING', CURRENT_TIMESTAMP),
+    (5, 3, 'Patient needs further diagnostic evaluation.', 'PENDING', CURRENT_TIMESTAMP);
