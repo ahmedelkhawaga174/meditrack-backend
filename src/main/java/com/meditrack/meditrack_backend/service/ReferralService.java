@@ -55,4 +55,21 @@ public class ReferralService {
                 .createdAt(updatedAppointment.getCreatedAt())
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    public ReferralResponse getReferralDetails(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Referral/Appointment not found with ID: " + appointmentId));
+
+        return ReferralResponse.builder()
+                .appointmentId(appointment.getId())
+                .patientId(appointment.getPatient().getId())
+                .patientName(appointment.getPatient().getFirstName() + " " + appointment.getPatient().getLastName())
+                .currentDoctorId(appointment.getDoctor().getId())
+                .currentDoctorName("Dr. " + appointment.getDoctor().getFirstName() + " " + appointment.getDoctor().getLastName())
+                .referralDetails(appointment.getNotes() != null ? appointment.getNotes() : "No detailed notes provided.")
+                .status(appointment.getStatus())
+                .createdAt(appointment.getCreatedAt())
+                .build();
+    }
 }

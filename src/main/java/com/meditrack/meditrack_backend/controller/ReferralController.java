@@ -22,4 +22,10 @@ public class ReferralController {
         ReferralResponse response = referralService.createReferral(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ReferralResponse> getReferralDetails(@PathVariable Long id) {
+        ReferralResponse response = referralService.getReferralDetails(id);
+        return ResponseEntity.ok(response);
+    }
 }
