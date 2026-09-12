@@ -14,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ReferralService {
@@ -48,6 +51,31 @@ public class ReferralService {
                 .orElseThrow(() -> new IllegalArgumentException("Referral not found with ID: " + id));
 
         return mapToResponse(referral);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReferralResponse> getPendingReferralsForDoctor(Long doctorId) {
+        if (doctorId == null) {
+            throw new IllegalArgumentException("Doctor ID must be provided");
+        }
+
+        List<Referral> pendingReferrals = referralRepository
+                .findByReferredToDoctorIdAndStatus(doctorId, ReferralStatus.PENDING);
+
+        return pendingReferrals.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ReferralResponse updateReferralStatus(Long referralId, ReferralStatus newStatus) {
+        Referral referral = referralRepository.findById(referralId)
+                .orElseThrow(() -> new IllegalArgumentException("Referral not found with ID: " + referralId));
+
+        referral.setStatus(newStatus);
+        Referral updated = referralRepository.save(referral);
+
+        return mapToResponse(updated);
     }
 
     private ReferralResponse mapToResponse(Referral referral) {
