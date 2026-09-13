@@ -4,16 +4,24 @@ import com.meditrack.meditrack_backend.dto.ReferralRequest;
 import com.meditrack.meditrack_backend.dto.ReferralResponse;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.entity.Doctor;
+import com.meditrack.meditrack_backend.entity.Patient;
+import com.meditrack.meditrack_backend.entity.Referral;
+import com.meditrack.meditrack_backend.enums.ReferralStatus;
 import com.meditrack.meditrack_backend.repository.AppointmentRepository;
 import com.meditrack.meditrack_backend.repository.DoctorRepository;
+import com.meditrack.meditrack_backend.repository.ReferralRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ReferralService {
 
+    private final ReferralRepository referralRepository;
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
 
@@ -22,37 +30,72 @@ public class ReferralService {
         Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found with ID: " + request.getAppointmentId()));
 
-        Doctor currentDoctor = appointment.getDoctor();
-
         Doctor targetDoctor = doctorRepository.findById(request.getReferredToDoctorId())
                 .orElseThrow(() -> new IllegalArgumentException("Target Doctor not found with ID: " + request.getReferredToDoctorId()));
 
-        String referralText = String.format("[REFERRAL from Dr. %s %s to Dr. %s %s] Reason: %s%s",
-                currentDoctor.getFirstName(), currentDoctor.getLastName(),
-                targetDoctor.getFirstName(), targetDoctor.getLastName(),
-                request.getReason(),
-                (request.getNotes() != null && !request.getNotes().isBlank()) ? " | Notes: " + request.getNotes() : ""
-        );
+        Referral referral = Referral.builder()
+                .appointment(appointment)
+                .referredToDoctor(targetDoctor)
+                .referralReason(request.getReferralReason())
+                .status(ReferralStatus.PENDING)
+                .build();
 
-        if (appointment.getNotes() != null && !appointment.getNotes().isBlank()) {
-            appointment.setNotes(appointment.getNotes() + "\n" + referralText);
-        } else {
-            appointment.setNotes(referralText);
+        Referral savedReferral = referralRepository.save(referral);
+
+        return mapToResponse(savedReferral);
+    }
+
+    @Transactional(readOnly = true)
+    public ReferralResponse getReferralById(Long id) {
+        Referral referral = referralRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Referral not found with ID: " + id));
+
+        return mapToResponse(referral);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReferralResponse> getPendingReferralsForDoctor(Long doctorId) {
+        if (doctorId == null) {
+            throw new IllegalArgumentException("Doctor ID must be provided");
         }
 
-        Appointment updatedAppointment = appointmentRepository.save(appointment);
+        List<Referral> pendingReferrals = referralRepository
+                .findByReferredToDoctorIdAndStatus(doctorId, ReferralStatus.PENDING);
+
+        return pendingReferrals.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ReferralResponse updateReferralStatus(Long referralId, ReferralStatus newStatus) {
+        Referral referral = referralRepository.findById(referralId)
+                .orElseThrow(() -> new IllegalArgumentException("Referral not found with ID: " + referralId));
+
+        referral.setStatus(newStatus);
+        Referral updated = referralRepository.save(referral);
+
+        return mapToResponse(updated);
+    }
+
+    private ReferralResponse mapToResponse(Referral referral) {
+        Appointment appointment = referral.getAppointment();
+        Patient patient = appointment.getPatient();
+        Doctor referringDoctor = appointment.getDoctor();
+        Doctor referredToDoctor = referral.getReferredToDoctor();
 
         return ReferralResponse.builder()
-                .appointmentId(updatedAppointment.getId())
-                .patientId(updatedAppointment.getPatient().getId())
-                .patientName(updatedAppointment.getPatient().getFirstName() + " " + updatedAppointment.getPatient().getLastName())
-                .currentDoctorId(currentDoctor.getId())
-                .currentDoctorName("Dr. " + currentDoctor.getFirstName() + " " + currentDoctor.getLastName())
-                .referredToDoctorId(targetDoctor.getId())
-                .referredToDoctorName("Dr. " + targetDoctor.getFirstName() + " " + targetDoctor.getLastName())
-                .referralDetails(referralText)
-                .status(updatedAppointment.getStatus())
-                .createdAt(updatedAppointment.getCreatedAt())
+                .id(referral.getId())
+                .appointmentId(appointment.getId())
+                .patientId(patient.getId())
+                .patientName(patient.getFirstName() + " " + patient.getLastName())
+                .referringDoctorId(referringDoctor.getId())
+                .referringDoctorName("Dr. " + referringDoctor.getFirstName() + " " + referringDoctor.getLastName())
+                .referredToDoctorId(referredToDoctor.getId())
+                .referredToDoctorName("Dr. " + referredToDoctor.getFirstName() + " " + referredToDoctor.getLastName())
+                .referralReason(referral.getReferralReason())
+                .status(referral.getStatus())
+                .createdAt(referral.getCreatedAt())
                 .build();
     }
 }
