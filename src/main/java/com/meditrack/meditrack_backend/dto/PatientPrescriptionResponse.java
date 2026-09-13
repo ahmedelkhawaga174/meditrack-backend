@@ -8,20 +8,16 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PrescriptionResponse {
+@Builder
+public class PatientPrescriptionResponse {
 
     private Long prescriptionId;
-    private Long consultantId;
-    private Long patientId;
-    private Long doctorId;
     private String medicineName;
     private String dosage;
     private String frequency;
     private String duration;
-
     private LocalDateTime issuedDate;
-    private String prescribedDoctor;
+    private String prescribingDoctor;
 }

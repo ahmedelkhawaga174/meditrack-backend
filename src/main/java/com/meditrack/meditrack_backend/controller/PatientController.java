@@ -7,6 +7,8 @@ import com.meditrack.meditrack_backend.dto.UpdatePatientRequest;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.service.AppointmentService;
 import com.meditrack.meditrack_backend.service.PatientService;
+import com.meditrack.meditrack_backend.service.PrescriptionService;
+import com.meditrack.meditrack_backend.dto.PatientPrescriptionResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ public class PatientController {
 
     private final PatientService patientService;
     private final AppointmentService appointmentService;
+    private final PrescriptionService prescriptionService;
 
     // R2 - Search Patient
     @GetMapping("/search")
@@ -94,6 +97,22 @@ public class PatientController {
 
         return ResponseEntity.ok(medicalHistory);
     }
+
+
+    // r3 - view prescription
+    @GetMapping("/{patientId}/prescription")
+    public ResponseEntity<List<PatientPrescriptionResponse>> getPatientPrescriptions(
+            @PathVariable Long patientId
+    ) {
+        return ResponseEntity.ok(
+                prescriptionService.getPatientPrescriptions(patientId)
+        );
+    }
+
+
+
+
+
 
     private PatientResponse toResponse(Appointment appointment) {
 
