@@ -92,6 +92,9 @@ public class PatientController {
     public ResponseEntity<MedicalHistoryResponse> getPatientMedicalHistory(
             @PathVariable Long patientId
     ) {
+
+        patientService.validateMedicalHistoryAccess(patientId);
+
         MedicalHistoryResponse medicalHistory =
                 appointmentService.getPatientMedicalHistory(patientId);
 
