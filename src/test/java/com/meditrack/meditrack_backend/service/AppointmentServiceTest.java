@@ -34,6 +34,9 @@ class AppointmentServiceTest {
     @Mock
     private AvailabilitySlotRepository availabilitySlotRepository;
 
+    @Mock
+    private PrescriptionService prescriptionService;
+
     private AppointmentService appointmentService;
 
     @BeforeEach
@@ -42,7 +45,8 @@ class AppointmentServiceTest {
                 appointmentRepository,
                 patientRepository,
                 doctorRepository,
-                availabilitySlotRepository
+                availabilitySlotRepository,
+                prescriptionService
         );
     }
 
@@ -73,8 +77,11 @@ class AppointmentServiceTest {
 
         when(appointmentRepository.save(any(Appointment.class)))
                 .thenAnswer(invocation -> {
-                    Appointment appointment = invocation.getArgument(0);
+                    Appointment appointment =
+                            invocation.getArgument(0);
+
                     appointment.setId(1L);
+
                     return appointment;
                 });
 
@@ -86,21 +93,42 @@ class AppointmentServiceTest {
         );
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals(patient, result.getPatient());
-        assertEquals(doctor, result.getDoctor());
-        assertEquals(slot, result.getSlot());
+
+        assertEquals(
+                1L,
+                result.getId()
+        );
+
+        assertEquals(
+                patient,
+                result.getPatient()
+        );
+
+        assertEquals(
+                doctor,
+                result.getDoctor()
+        );
+
+        assertEquals(
+                slot,
+                result.getSlot()
+        );
+
         assertEquals(
                 AppointmentStatus.CONFIRMED,
                 result.getStatus()
         );
+
         assertEquals(
                 SlotStatus.BOOKED,
                 slot.getStatus()
         );
 
-        verify(appointmentRepository).save(any(Appointment.class));
-        verify(availabilitySlotRepository).save(slot);
+        verify(appointmentRepository)
+                .save(any(Appointment.class));
+
+        verify(availabilitySlotRepository)
+                .save(slot);
     }
 
     @Test
@@ -119,8 +147,11 @@ class AppointmentServiceTest {
                 )
         );
 
-        verify(doctorRepository, never()).findById(anyLong());
-        verify(appointmentRepository, never()).save(any());
+        verify(doctorRepository, never())
+                .findById(anyLong());
+
+        verify(appointmentRepository, never())
+                .save(any());
     }
 
     @Test
@@ -145,7 +176,8 @@ class AppointmentServiceTest {
                 )
         );
 
-        verify(appointmentRepository, never()).save(any());
+        verify(appointmentRepository, never())
+                .save(any());
     }
 
     @Test
@@ -178,7 +210,8 @@ class AppointmentServiceTest {
                 )
         );
 
-        verify(appointmentRepository, never()).save(any());
+        verify(appointmentRepository, never())
+                .save(any());
     }
 
     @Test
@@ -219,7 +252,8 @@ class AppointmentServiceTest {
                 )
         );
 
-        verify(appointmentRepository, never()).save(any());
+        verify(appointmentRepository, never())
+                .save(any());
     }
 
     @Test
@@ -235,9 +269,14 @@ class AppointmentServiceTest {
                 appointmentService.getAppointment(1L);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
 
-        verify(appointmentRepository).findById(1L);
+        assertEquals(
+                1L,
+                result.getId()
+        );
+
+        verify(appointmentRepository)
+                .findById(1L);
     }
 
     @Test
@@ -251,18 +290,22 @@ class AppointmentServiceTest {
                 () -> appointmentService.getAppointment(999L)
         );
     }
+
     @Test
     void shouldCheckInPatientSuccessfully() {
 
         Appointment appointment = new Appointment();
         appointment.setId(1L);
-        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointment.setStatus(
+                AppointmentStatus.CONFIRMED
+        );
 
         when(appointmentRepository.findById(1L))
                 .thenReturn(Optional.of(appointment));
 
-        when(appointmentRepository.save(any(Appointment.class)))
-                .thenReturn(appointment);
+        when(appointmentRepository.save(
+                any(Appointment.class)
+        )).thenReturn(appointment);
 
         Appointment result =
                 appointmentService.checkInPatient(1L);
@@ -274,9 +317,13 @@ class AppointmentServiceTest {
                 result.getStatus()
         );
 
-        verify(appointmentRepository).findById(1L);
-        verify(appointmentRepository).save(appointment);
+        verify(appointmentRepository)
+                .findById(1L);
+
+        verify(appointmentRepository)
+                .save(appointment);
     }
+
     @Test
     void shouldThrowExceptionWhenAppointmentNotFoundForCheckIn() {
 
@@ -291,12 +338,15 @@ class AppointmentServiceTest {
         verify(appointmentRepository, never())
                 .save(any(Appointment.class));
     }
+
     @Test
     void shouldThrowExceptionWhenAppointmentIsNotConfirmed() {
 
         Appointment appointment = new Appointment();
         appointment.setId(1L);
-        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointment.setStatus(
+                AppointmentStatus.CANCELLED
+        );
 
         when(appointmentRepository.findById(1L))
                 .thenReturn(Optional.of(appointment));

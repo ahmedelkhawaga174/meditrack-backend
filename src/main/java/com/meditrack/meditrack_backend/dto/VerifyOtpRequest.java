@@ -2,7 +2,15 @@ package com.meditrack.meditrack_backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class VerifyOtpRequest {
 
     @NotBlank(message = "Phone is required")
@@ -14,28 +22,4 @@ public class VerifyOtpRequest {
             message = "OTP must be 6 digits"
     )
     private String otp;
-
-    public VerifyOtpRequest() {
-    }
-
-    public VerifyOtpRequest(String phone, String otp) {
-        this.phone = phone;
-        this.otp = otp;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getOtp() {
-        return otp;
-    }
-
-    public void setOtp(String otp) {
-        this.otp = otp;
-    }
 }

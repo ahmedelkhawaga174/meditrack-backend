@@ -18,4 +18,8 @@ public interface ReferralRepository extends JpaRepository<Referral, Long> {
     List<Referral> findByAppointmentDoctorId(Long doctorId);
 
     List<Referral> findByStatus(ReferralStatus status);
+    List<Referral> findByReferredToDoctorIdAndStatusIn(
+            Long doctorId,
+            List<ReferralStatus> statuses
+    );
 }

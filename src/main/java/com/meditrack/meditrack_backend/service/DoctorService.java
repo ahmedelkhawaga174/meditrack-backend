@@ -17,66 +17,121 @@ public class DoctorService {
 
     private final DoctorRepository doctorRepository;
 
-    public List<DoctorResponse> getAvailableDoctors(Long departmentId, LocalDate date) {
+    public List<DoctorResponse> getAvailableDoctors(
+            Long departmentId,
+            LocalDate date
+    ) {
 
         List<Doctor> doctors = doctorRepository.findAll();
 
         return doctors.stream()
-                .filter(doctor -> departmentId == null ||
-                        (doctor.getDepartment() != null && doctor.getDepartment().getId().equals(departmentId)))
-                .filter(doctor -> doctor.getAvailabilitySlots() != null && doctor.getAvailabilitySlots().stream()
-                        .anyMatch(slot -> slot.getStatus() == SlotStatus.AVAILABLE &&
-                                (date == null || slot.getDate().equals(date))))
-                .map(doctor -> DoctorResponse.builder()
-                        .id(doctor.getId())
-                        .firstName(doctor.getFirstName())
-                        .lastName(doctor.getLastName())
-                        .specialization(doctor.getSpecialization())
-                        .departmentId(doctor.getDepartment() != null ? doctor.getDepartment().getId() : null)
-                        .departmentName(doctor.getDepartment() != null ? doctor.getDepartment().getName() : null)
-                        .availableSlots(
-                                doctor.getAvailabilitySlots().stream()
-                                        .filter(slot -> slot.getStatus() == SlotStatus.AVAILABLE &&
-                                                (date == null || slot.getDate().equals(date)))
-                                        .map(slot -> SlotResponse.builder()
-                                                .id(slot.getId())
-                                                .date(slot.getDate())
-                                                .startTime(slot.getStartTime())
-                                                .endTime(slot.getEndTime())
-                                                .build())
-                                        .toList()
-                        )
-                        .build())
+
+                // Filter by department only.
+                // Do NOT filter doctors based on availability.
+                .filter(doctor ->
+                        departmentId == null ||
+                                (doctor.getDepartment() != null &&
+                                        doctor.getDepartment()
+                                                .getId()
+                                                .equals(departmentId))
+                )
+
+                .map(doctor -> {
+
+                    List<SlotResponse> availableSlots =
+                            doctor.getAvailabilitySlots() == null
+                                    ? List.of()
+                                    : doctor.getAvailabilitySlots()
+                                    .stream()
+                                    .filter(slot ->
+                                            slot.getStatus() == SlotStatus.AVAILABLE
+                                    )
+                                    .filter(slot ->
+                                            !slot.getDate()
+                                                    .isBefore(LocalDate.now())
+                                    )
+                                    .filter(slot ->
+                                            date == null ||
+                                                    slot.getDate().equals(date)
+                                    )
+                                    .map(slot ->
+                                            SlotResponse.builder()
+                                                    .id(slot.getId())
+                                                    .date(slot.getDate())
+                                                    .startTime(slot.getStartTime())
+                                                    .endTime(slot.getEndTime())
+                                                    .build()
+                                    )
+                                    .toList();
+
+                    return DoctorResponse.builder()
+                            .id(doctor.getId())
+                            .firstName(doctor.getFirstName())
+                            .lastName(doctor.getLastName())
+                            .specialization(doctor.getSpecialization())
+                            .departmentId(
+                                    doctor.getDepartment() != null
+                                            ? doctor.getDepartment().getId()
+                                            : null
+                            )
+                            .departmentName(
+                                    doctor.getDepartment() != null
+                                            ? doctor.getDepartment().getName()
+                                            : null
+                            )
+                            .availableSlots(availableSlots)
+                            .build();
+                })
                 .toList();
     }
 
+    public DoctorResponse getDoctorById(long doctorId) {
 
-    // view doctor info -> get doctor by id
-    public DoctorResponse getDoctorById(long doctorId){
         Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(()->
-                        new RuntimeException("Doctor not found with id "+ doctorId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Doctor not found with id " + doctorId
+                        )
                 );
-    return DoctorResponse.builder()
-            .id(doctor.getId())
-            .firstName(doctor.getFirstName())
-            .lastName(doctor.getLastName())
-            .specialization(doctor.getSpecialization())
-            .departmentId(
-                    doctor.getDepartment() !=null? doctor.getDepartment().getId():null)
-            .departmentName(
-                    doctor.getDepartment()!=null? doctor.getDepartment().getName():null)
-            .availableSlots(
-                    doctor.getAvailabilitySlots().stream()
-                            .filter(slot -> slot.getStatus() == SlotStatus.AVAILABLE)
-                            .map(slot -> SlotResponse.builder()
-                                    .id(slot.getId())
-                                    .date(slot.getDate())
-                                    .startTime(slot.getStartTime())
-                                    .endTime(slot.getEndTime())
-                                    .build())
-                            .toList()
-            )
-            .build();
+
+        List<SlotResponse> availableSlots =
+                doctor.getAvailabilitySlots() == null
+                        ? List.of()
+                        : doctor.getAvailabilitySlots()
+                        .stream()
+                        .filter(slot ->
+                                slot.getStatus() == SlotStatus.AVAILABLE
+                        )
+                        .filter(slot ->
+                                !slot.getDate()
+                                        .isBefore(LocalDate.now())
+                        )
+                        .map(slot ->
+                                SlotResponse.builder()
+                                        .id(slot.getId())
+                                        .date(slot.getDate())
+                                        .startTime(slot.getStartTime())
+                                        .endTime(slot.getEndTime())
+                                        .build()
+                        )
+                        .toList();
+
+        return DoctorResponse.builder()
+                .id(doctor.getId())
+                .firstName(doctor.getFirstName())
+                .lastName(doctor.getLastName())
+                .specialization(doctor.getSpecialization())
+                .departmentId(
+                        doctor.getDepartment() != null
+                                ? doctor.getDepartment().getId()
+                                : null
+                )
+                .departmentName(
+                        doctor.getDepartment() != null
+                                ? doctor.getDepartment().getName()
+                                : null
+                )
+                .availableSlots(availableSlots)
+                .build();
     }
 }

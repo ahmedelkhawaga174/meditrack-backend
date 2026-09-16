@@ -120,6 +120,57 @@ public class PatientService {
                 .toList();
     }
 
+    // =========================
+// R2 - Receptionist View All Patients
+// =========================
+
+    @Transactional(readOnly = true)
+    public List<PatientInfoResponse> getAllPatientsForReceptionist() {
+
+        validateReceptionistAccess();
+
+        return patientRepository.findAll()
+                .stream()
+                .map(this::toPatientInfoResponse)
+                .toList();
+    }
+
+
+// =========================
+// RECEPTIONIST AUTHORIZATION
+// =========================
+
+    private void validateReceptionistAccess() {
+
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        if (authentication == null ||
+                !authentication.isAuthenticated()) {
+
+            throw new AccessDeniedException(
+                    "You must be logged in"
+            );
+        }
+
+        String phone = authentication.getName();
+
+        User user = userRepository.findByPhone(phone)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
+                );
+
+        if (user.getRole() != UserRole.RECEPTIONIST) {
+
+            throw new AccessDeniedException(
+                    "Only receptionists can access all patients"
+            );
+        }
+    }
 
     // =========================
     // PATIENT AUTHORIZATION

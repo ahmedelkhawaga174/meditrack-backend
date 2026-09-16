@@ -1,29 +1,15 @@
 package com.meditrack.meditrack_backend.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegisterResponse {
 
     private Long patientId;
     private String phone;
     private String message;
-
-    public RegisterResponse() {
-    }
-
-    public RegisterResponse(Long patientId, String phone, String message) {
-        this.patientId = patientId;
-        this.phone = phone;
-        this.message = message;
-    }
-
-    public Long getPatientId() {
-        return patientId;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getMessage() {
-        return message;
-    }
 }

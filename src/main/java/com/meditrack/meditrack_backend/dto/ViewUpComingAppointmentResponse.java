@@ -14,18 +14,19 @@ import java.time.LocalTime;
 @Builder
 public class ViewUpComingAppointmentResponse {
 
+    private Long appointmentId;
     private Long patientId;
     private String patientName;
     private AvailabilitySlotResponse slot;
     private LocalDate date;
-
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class AvailabilitySlotResponse {
-         private LocalTime startTime;
-         private LocalTime endTime;
+
+        private LocalTime startTime;
+        private LocalTime endTime;
     }
 }

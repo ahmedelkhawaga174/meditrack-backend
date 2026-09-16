@@ -2,17 +2,13 @@ package com.meditrack.meditrack_backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-import java.util.Map;
 
 @Configuration
 public class SecurityConfig {
@@ -24,35 +20,101 @@ public class SecurityConfig {
         http
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
-                        // Authentication endpoints are public
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/consultations/**").permitAll()
 
-                        // Doctor discovery is public
-                        .requestMatchers("/api/doctors/**").permitAll()
+                        // =====================================================
+                        // AUTHENTICATION
+                        // =====================================================
 
-                        // Patient and appointment data require login
-                        .requestMatchers("/api/patients/**").authenticated()
-                        // receptionist authentication
-                        .requestMatchers("/api/appointments/*/check-in").hasRole("RECEPTIONIST")
-                        .requestMatchers("/api/waiting-queue/**").hasRole("RECEPTIONIST")
+                        .requestMatchers("/api/auth/**")
+                        .permitAll()
+
+
+                        // =====================================================
+                        // DOCTOR DISCOVERY
+                        // =====================================================
+
+                        .requestMatchers("/api/doctors/**")
+                        .permitAll()
+
+
+                        // =====================================================
+                        // CONSULTATIONS
+                        // =====================================================
+
+                        .requestMatchers("/api/consultations/**")
+                        .hasAnyRole("DOCTOR", "PATIENT")
+
+
+                        // =====================================================
+                        // RECEPTIONIST - PATIENTS
+                        // =====================================================
+
+                        .requestMatchers("/api/patients/search")
+                        .hasRole("RECEPTIONIST")
+
+                        .requestMatchers("/api/patients")
+                        .hasRole("RECEPTIONIST")
+
+
+                        // =====================================================
+                        // PATIENT APIs
+                        // =====================================================
+
+                        .requestMatchers("/api/patients/**")
+                        .authenticated()
+
+
+                        // =====================================================
+                        // RECEPTIONIST - CHECK IN
+                        // =====================================================
+
+                        .requestMatchers("/api/appointments/*/check-in")
+                        .hasRole("RECEPTIONIST")
+
+
+                        // =====================================================
+                        // RECEPTIONIST - WAITING QUEUE
+                        // =====================================================
+
+                        .requestMatchers("/api/waiting-queue/**")
+                        .hasRole("RECEPTIONIST")
+
+
+                        // =====================================================
+                        // APPOINTMENTS
+                        // =====================================================
+
                         .requestMatchers("/api/appointments/**")
                         .authenticated()
 
-                        .requestMatchers("/api/patients/*/medical-history").hasAnyRole("DOCTOR", "PATIENT")
 
-                        // Everything else requires authentication
-                        .anyRequest().authenticated()
+                        // =====================================================
+                        // REFERRALS
+                        // =====================================================
+
+                        .requestMatchers("/api/referrals/**")
+                        .permitAll()
+
+
+                        // =====================================================
+                        // EVERYTHING ELSE
+                        // =====================================================
+
+                        .anyRequest()
+                        .authenticated()
                 );
 
         return http.build();
     }
 
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration configuration = new CorsConfiguration();
+        CorsConfiguration configuration =
+                new CorsConfiguration();
 
         configuration.setAllowedOrigins(
                 List.of("http://localhost:4200")
@@ -78,9 +140,11 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration(
+                "/**",
+                configuration
+        );
 
         return source;
     }
-
 }
