@@ -11,6 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.meditrack.meditrack_backend.dto.CreateAvailabilityRequest;
+import com.meditrack.meditrack_backend.dto.SlotResponse;
+import com.meditrack.meditrack_backend.service.AvailabilitySlotService;
+import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,6 +28,7 @@ public class DoctorController {
     private final DoctorService doctorService;
     private final AppointmentService appointmentService;
     private final DoctorPatientService doctorPatientService;
+    private final AvailabilitySlotService availabilitySlotService;
 
     @GetMapping
     public ResponseEntity<List<DoctorResponse>> getAvailableDoctors(
@@ -59,5 +64,63 @@ public class DoctorController {
     public ResponseEntity<List<DoctorPatientDto>> getDoctorPatients(@PathVariable Long doctorId) {
         List<DoctorPatientDto> patients = doctorPatientService.getPatientsByDoctor(doctorId);
         return ResponseEntity.ok(patients);
+    }
+
+    @GetMapping("{doctorId}/appointments/today")
+    public ResponseEntity<List<ViewUpComingAppointmentResponse>> viewTodaySchedule(
+            @PathVariable Long doctorId
+    ) {
+
+        List<ViewUpComingAppointmentResponse> todayAppointments =
+                appointmentService.viewTodaySchedule(doctorId);
+
+        return ResponseEntity.ok(todayAppointments);
+    }
+
+    // =====================================================
+// DOCTOR AVAILABILITY
+// =====================================================
+
+    @PostMapping("/{doctorId}/availability")
+    public ResponseEntity<List<SlotResponse>> createAvailability(
+            @PathVariable Long doctorId,
+            @Valid @RequestBody CreateAvailabilityRequest request
+    ) {
+
+        List<SlotResponse> slots =
+                availabilitySlotService.createAvailability(
+                        doctorId,
+                        request
+                );
+
+        return ResponseEntity.ok(slots);
+    }
+
+
+    @GetMapping("/{doctorId}/availability")
+    public ResponseEntity<List<SlotResponse>> getDoctorAvailability(
+            @PathVariable Long doctorId
+    ) {
+
+        return ResponseEntity.ok(
+                availabilitySlotService.getDoctorAvailability(
+                        doctorId
+                )
+        );
+    }
+
+
+    @DeleteMapping("/{doctorId}/availability/{slotId}")
+    public ResponseEntity<Void> deleteAvailableSlot(
+            @PathVariable Long doctorId,
+            @PathVariable Long slotId
+    ) {
+
+        availabilitySlotService.deleteAvailableSlot(
+                doctorId,
+                slotId
+        );
+
+        return ResponseEntity.noContent().build();
     }
 }

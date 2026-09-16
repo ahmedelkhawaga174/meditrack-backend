@@ -20,45 +20,100 @@ public class ConsultationController {
     private final DiagnosisService diagnosisService;
     private final PrescriptionService prescriptionService;
 
+
     @PostMapping
-    public ResponseEntity<ConsultationResponse> recordConsultation(@Valid @RequestBody ConsultationRequest request) {
-        ConsultationResponse response = consultationService.recordConsultation(request);
+    public ResponseEntity<ConsultationResponse> recordConsultation(
+            @Valid @RequestBody ConsultationRequest request
+    ) {
+
+        ConsultationResponse response =
+                consultationService.recordConsultation(request);
+
         return ResponseEntity.ok(response);
     }
+
 
     @PostMapping("/{consultationId}/diagnoses")
     public ResponseEntity<DiagnosisResponse> recordDiagnosis(
             @PathVariable Long consultationId,
-            @Valid @RequestBody RecordDiagnosisRequest request) {
+            @Valid @RequestBody RecordDiagnosisRequest request
+    ) {
 
-        DiagnosisResponse response = diagnosisService.recordDiagnosis(consultationId, request);
+        DiagnosisResponse response =
+                diagnosisService.recordDiagnosis(
+                        consultationId,
+                        request
+                );
+
         return ResponseEntity.ok(response);
     }
+
+
+    /**
+     * Update existing diagnosis.
+     */
+    @PutMapping("/{consultationId}/diagnoses")
+    public ResponseEntity<DiagnosisResponse> updateDiagnosis(
+            @PathVariable Long consultationId,
+            @Valid @RequestBody RecordDiagnosisRequest request
+    ) {
+
+        DiagnosisResponse response =
+                diagnosisService.updateDiagnosis(
+                        consultationId,
+                        request
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping("/{consultationId}/notes")
     public ResponseEntity<ConsultationResponse> createNote(
             @PathVariable Long consultationId,
-            @Valid @RequestBody NoteRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(consultationService.addNoteToConsultation(consultationId, request));
+            @Valid @RequestBody NoteRequest request
+    ) {
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(
+                        consultationService.addNoteToConsultation(
+                                consultationId,
+                                request
+                        )
+                );
     }
 
+
+    /**
+     * Update existing consultation notes.
+     */
     @PutMapping("/{consultationId}/notes")
     public ResponseEntity<ConsultationResponse> updateNote(
             @PathVariable Long consultationId,
-            @Valid @RequestBody NoteRequest request) {
-        return ResponseEntity.ok(consultationService.updateConsultationNote(consultationId, request));
+            @Valid @RequestBody NoteRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                consultationService.updateConsultationNote(
+                        consultationId,
+                        request
+                )
+        );
     }
+
 
     @PostMapping("/{consultationId}/prescriptions")
     public ResponseEntity<PrescriptionResponse> issuePrescription(
             @PathVariable Long consultationId,
-            @Valid @RequestBody PrescriptionRequest request) {
+            @Valid @RequestBody PrescriptionRequest request
+    ) {
 
         PrescriptionResponse response =
                 prescriptionService.issueprescription(
-                        consultationId, request);
-
+                        consultationId,
+                        request
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

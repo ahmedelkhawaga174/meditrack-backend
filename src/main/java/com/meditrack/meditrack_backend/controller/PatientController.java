@@ -2,13 +2,13 @@ package com.meditrack.meditrack_backend.controller;
 
 import com.meditrack.meditrack_backend.dto.MedicalHistoryResponse;
 import com.meditrack.meditrack_backend.dto.PatientInfoResponse;
+import com.meditrack.meditrack_backend.dto.PatientPrescriptionResponse;
 import com.meditrack.meditrack_backend.dto.PatientResponse;
 import com.meditrack.meditrack_backend.dto.UpdatePatientRequest;
 import com.meditrack.meditrack_backend.entity.Appointment;
 import com.meditrack.meditrack_backend.service.AppointmentService;
 import com.meditrack.meditrack_backend.service.PatientService;
 import com.meditrack.meditrack_backend.service.PrescriptionService;
-import com.meditrack.meditrack_backend.dto.PatientPrescriptionResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,11 @@ public class PatientController {
     private final AppointmentService appointmentService;
     private final PrescriptionService prescriptionService;
 
-    // R2 - Search Patient
+
+    // =====================================================
+    // R2 - SEARCH PATIENT
+    // =====================================================
+
     @GetMapping("/search")
     public ResponseEntity<List<PatientInfoResponse>> searchPatients(
             @RequestParam String q
@@ -36,7 +40,11 @@ public class PatientController {
         );
     }
 
-    // R2 - Manage Patient Information
+
+    // =====================================================
+    // R2 - MANAGE PATIENT INFORMATION
+    // =====================================================
+
     @GetMapping("/{patientId}")
     public ResponseEntity<PatientInfoResponse> getPatientInfo(
             @PathVariable Long patientId
@@ -46,24 +54,38 @@ public class PatientController {
         );
     }
 
-    // R2 - Manage Patient Information
+
+    // =====================================================
+    // R2 - MANAGE PATIENT INFORMATION
+    // =====================================================
+
     @PutMapping("/{patientId}")
     public ResponseEntity<PatientInfoResponse> updatePatientInfo(
             @PathVariable Long patientId,
             @Valid @RequestBody UpdatePatientRequest request
     ) {
         return ResponseEntity.ok(
-                patientService.updatePatientInfo(patientId, request)
+                patientService.updatePatientInfo(
+                        patientId,
+                        request
+                )
         );
     }
 
-    // R1 - View Upcoming Patient Appointments
+
+    // =====================================================
+    // R1 - VIEW UPCOMING PATIENT APPOINTMENTS
+    // =====================================================
+
     @GetMapping("/{patientId}/appointments/date")
     public ResponseEntity<List<PatientResponse>> getUpcomingAppointments(
             @PathVariable Long patientId
     ) {
+
         List<Appointment> appointments =
-                patientService.getUpcomingAppointments(patientId);
+                patientService.getUpcomingAppointments(
+                        patientId
+                );
 
         return ResponseEntity.ok(
                 appointments.stream()
@@ -72,13 +94,20 @@ public class PatientController {
         );
     }
 
-    // R1 - View Past Patient Appointments
+
+    // =====================================================
+    // R1 - VIEW PAST PATIENT APPOINTMENTS
+    // =====================================================
+
     @GetMapping("/{patientId}/appointments/past")
     public ResponseEntity<List<PatientResponse>> getPastAppointments(
             @PathVariable Long patientId
     ) {
+
         List<Appointment> appointments =
-                patientService.getPastAppointments(patientId);
+                patientService.getPastAppointments(
+                        patientId
+                );
 
         return ResponseEntity.ok(
                 appointments.stream()
@@ -87,44 +116,84 @@ public class PatientController {
         );
     }
 
-    // Existing functionality
+
+    // =====================================================
+    // R3 - VIEW MEDICAL HISTORY
+    // =====================================================
+
     @GetMapping("/{patientId}/medical-history")
     public ResponseEntity<MedicalHistoryResponse> getPatientMedicalHistory(
-            @PathVariable Long patientId
+            @PathVariable Long patientId,
+            @RequestParam(required = false) Long doctorId
     ) {
 
-        patientService.validateMedicalHistoryAccess(patientId);
+        patientService.validateMedicalHistoryAccess(
+                patientId
+        );
 
-        MedicalHistoryResponse medicalHistory =
-                appointmentService.getPatientMedicalHistory(patientId);
+        MedicalHistoryResponse medicalHistory;
 
-        return ResponseEntity.ok(medicalHistory);
-    }
+        if (doctorId != null) {
 
+            // Doctor:
+            // Get medical history for this patient
+            // belonging to this specific doctor.
+            medicalHistory =
+                    appointmentService.getPatientMedicalHistory(
+                            patientId,
+                            doctorId
+                    );
 
-    // r3 - view prescription
-    @GetMapping("/{patientId}/prescription")
-    public ResponseEntity<List<PatientPrescriptionResponse>> getPatientPrescriptions(
-            @PathVariable Long patientId
-    ) {
+        } else {
+
+            // Patient:
+            // Get the patient's complete medical history.
+            medicalHistory =
+                    appointmentService.getPatientMedicalHistory(
+                            patientId
+                    );
+        }
+
         return ResponseEntity.ok(
-                prescriptionService.getPatientPrescriptions(patientId)
+                medicalHistory
         );
     }
 
 
+    // =====================================================
+    // R3 - VIEW PRESCRIPTIONS
+    // =====================================================
+
+    @GetMapping("/{patientId}/prescription")
+    public ResponseEntity<List<PatientPrescriptionResponse>>
+    getPatientPrescriptions(
+            @PathVariable Long patientId
+    ) {
+
+        return ResponseEntity.ok(
+                prescriptionService.getPatientPrescriptions(
+                        patientId
+                )
+        );
+    }
 
 
+    // =====================================================
+    // MAP APPOINTMENT TO RESPONSE
+    // =====================================================
 
-
-    private PatientResponse toResponse(Appointment appointment) {
+    private PatientResponse toResponse(
+            Appointment appointment
+    ) {
 
         var doctor = appointment.getDoctor();
         var slot = appointment.getSlot();
 
         return new PatientResponse(
                 appointment.getId(),
-                doctor.getFirstName() + " " + doctor.getLastName(),
+                doctor.getFirstName()
+                        + " "
+                        + doctor.getLastName(),
                 doctor.getSpecialization(),
                 doctor.getDepartment().getName(),
                 slot.getDate(),
@@ -132,6 +201,17 @@ public class PatientController {
                 slot.getEndTime(),
                 appointment.getStatus(),
                 appointment.getNotes()
+        );
+    }
+    // =====================================================
+// R2 - RECEPTIONIST VIEW ALL PATIENTS
+// =====================================================
+
+    @GetMapping
+    public ResponseEntity<List<PatientInfoResponse>> getAllPatients() {
+
+        return ResponseEntity.ok(
+                patientService.getAllPatientsForReceptionist()
         );
     }
 }

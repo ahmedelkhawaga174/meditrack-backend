@@ -1,6 +1,5 @@
 package com.meditrack.meditrack_backend.service;
 
-
 import com.meditrack.meditrack_backend.dto.PatientPrescriptionResponse;
 import com.meditrack.meditrack_backend.dto.PrescriptionRequest;
 import com.meditrack.meditrack_backend.dto.PrescriptionResponse;
@@ -22,57 +21,95 @@ public class PrescriptionService {
 
     private final AppointmentRepository appointmentRepository;
 
-    private final Map<Long, List<PrescriptionResponse>> prescriptions = new ConcurrentHashMap<>();
+    private final Map<Long, List<PrescriptionResponse>> prescriptions =
+            new ConcurrentHashMap<>();
 
     private final AtomicLong prescriptionIdGenerator =
             new AtomicLong(1);
 
 
+    // =====================================================
+    // ISSUE PRESCRIPTION
+    // =====================================================
 
-    public PrescriptionResponse issueprescription( Long consultationId, PrescriptionRequest request) {
-        Appointment appointment = appointmentRepository.findById(consultationId).orElseThrow(() -> new IllegalArgumentException("consultation not found with ID: " + consultationId));
+    public PrescriptionResponse issueprescription(
+            Long consultationId,
+            PrescriptionRequest request
+    ) {
 
-        Long prescriptionId = prescriptionIdGenerator.getAndIncrement();
+        Appointment appointment =
+                appointmentRepository.findById(consultationId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "consultation not found with ID: "
+                                                + consultationId
+                                )
+                        );
 
-        PrescriptionResponse response = PrescriptionResponse.builder()
-                .prescriptionId(prescriptionId)
-                .consultantId(consultationId)
-                .patientId(appointment.getPatient().getId())
-                .doctorId(appointment.getDoctor().getId())
-                .medicineName(request.getMedicationName())
-                .dosage(request.getDosage())
-                .frequency(request.getFrequency())
-                .duration(request.getDuration())
-                .issuedDate(LocalDateTime.now())
-                .prescribedDoctor(
-                        "Dr. "
-                                + appointment.getDoctor().getFirstName()
-                                + " "
-                                + appointment.getDoctor().getLastName()
-                )
-                .build();
+        Long prescriptionId =
+                prescriptionIdGenerator.getAndIncrement();
+
+        PrescriptionResponse response =
+                PrescriptionResponse.builder()
+                        .prescriptionId(prescriptionId)
+                        .consultantId(consultationId)
+                        .patientId(appointment.getPatient().getId())
+                        .doctorId(appointment.getDoctor().getId())
+                        .medicineName(request.getMedicationName())
+                        .dosage(request.getDosage())
+                        .frequency(request.getFrequency())
+                        .duration(request.getDuration())
+                        .issuedDate(LocalDateTime.now())
+                        .prescribedDoctor(
+                                "Dr. "
+                                        + appointment.getDoctor().getFirstName()
+                                        + " "
+                                        + appointment.getDoctor().getLastName()
+                        )
+                        .build();
 
         prescriptions
-                .computeIfAbsent(consultationId, id -> new ArrayList<>())
+                .computeIfAbsent(
+                        consultationId,
+                        id -> new ArrayList<>()
+                )
                 .add(response);
 
-        // 5. Return response
         return response;
-
     }
 
-    //view prescription for patient
+
+    // =====================================================
+    // GET PRESCRIPTIONS FOR ONE CONSULTATION
+    // =====================================================
+
+    public List<PrescriptionResponse> getPrescriptionsByConsultation(
+            Long consultationId
+    ) {
+
+        return prescriptions.getOrDefault(
+                consultationId,
+                List.of()
+        );
+    }
+
+
+    // =====================================================
+    // VIEW PRESCRIPTIONS FOR PATIENT
+    // =====================================================
 
     public List<PatientPrescriptionResponse> getPatientPrescriptions(
             Long patientId
     ) {
 
+        List<PatientPrescriptionResponse> result =
+                new ArrayList<>();
 
-        List<PatientPrescriptionResponse> result = new ArrayList<>();
+        for (List<PrescriptionResponse> prescriptionList
+                : prescriptions.values()) {
 
-        for (List<PrescriptionResponse> prescriptionList : prescriptions.values()) {
-
-            for (PrescriptionResponse prescription : prescriptionList) {
+            for (PrescriptionResponse prescription
+                    : prescriptionList) {
 
                 if (prescription.getPatientId().equals(patientId)) {
 
@@ -107,8 +144,4 @@ public class PrescriptionService {
 
         return result;
     }
-
-
-
-
 }

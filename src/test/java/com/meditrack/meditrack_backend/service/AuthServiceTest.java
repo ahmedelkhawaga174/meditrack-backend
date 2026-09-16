@@ -4,10 +4,12 @@ import com.meditrack.meditrack_backend.dto.LoginRequest;
 import com.meditrack.meditrack_backend.dto.LoginResponse;
 import com.meditrack.meditrack_backend.dto.RegisterRequest;
 import com.meditrack.meditrack_backend.dto.RegisterResponse;
+import com.meditrack.meditrack_backend.entity.Doctor;
 import com.meditrack.meditrack_backend.entity.Patient;
 import com.meditrack.meditrack_backend.entity.User;
 import com.meditrack.meditrack_backend.enums.UserRole;
 import com.meditrack.meditrack_backend.enums.UserStatus;
+import com.meditrack.meditrack_backend.repository.DoctorRepository;
 import com.meditrack.meditrack_backend.repository.PatientRepository;
 import com.meditrack.meditrack_backend.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,6 +57,9 @@ class AuthServiceTest {
     private PatientRepository patientRepository;
 
     @Mock
+    private DoctorRepository doctorRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -75,6 +80,7 @@ class AuthServiceTest {
                 userRepository,
                 securityContextRepository,
                 patientRepository,
+                doctorRepository,
                 passwordEncoder,
                 otpService
         );
@@ -108,16 +114,27 @@ class AuthServiceTest {
         when(userRepository.findByPhone("01055556666"))
                 .thenReturn(Optional.of(user));
 
+        when(patientRepository.findByUser_Id(5L))
+                .thenReturn(Optional.of(
+                        createPatient(20L)
+                ));
+
         LoginResponse response = authService.login(
-                new LoginRequest("01055556666", "pass123"),
+                new LoginRequest(
+                        "01055556666",
+                        "pass123"
+                ),
                 httpRequest,
                 httpResponse
         );
 
         assertEquals(5L, response.getUserId());
+        assertEquals(20L, response.getPatientId());
+        assertEquals(null, response.getDoctorId());
         assertEquals("01055556666", response.getPhone());
         assertEquals(UserRole.PATIENT, response.getRole());
         assertEquals("Login successful", response.getMessage());
+
         assertNotNull(response.getLastLoginAt());
         assertNotNull(user.getLastLoginAt());
 
@@ -133,13 +150,83 @@ class AuthServiceTest {
                 any(HttpServletRequest.class),
                 any(HttpServletResponse.class)
         );
+
+        verify(patientRepository).findByUser_Id(5L);
+
+        verify(doctorRepository, never())
+                .findByUser_Id(any(Long.class));
+    }
+
+    @Test
+    void shouldLoginDoctorAndReturnDoctorId() {
+
+        User user = new User();
+        user.setId(11L);
+        user.setUsername("doctor_ahmed");
+        user.setPhone("01110000001");
+        user.setPasswordHash("hashed_password");
+        user.setRole(UserRole.DOCTOR);
+        user.setStatus(UserStatus.ACTIVE);
+
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+        doctor.setUser(user);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                "01110000001",
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_DOCTOR"))
+        );
+
+        when(authenticationManager.authenticate(any(Authentication.class)))
+                .thenReturn(authentication);
+
+        when(userRepository.findByPhone("01110000001"))
+                .thenReturn(Optional.of(user));
+
+        when(doctorRepository.findByUser_Id(11L))
+                .thenReturn(Optional.of(doctor));
+
+        LoginResponse response = authService.login(
+                new LoginRequest(
+                        "01110000001",
+                        "pass123"
+                ),
+                httpRequest,
+                httpResponse
+        );
+
+        assertEquals(11L, response.getUserId());
+        assertEquals(null, response.getPatientId());
+        assertEquals(1L, response.getDoctorId());
+        assertEquals("01110000001", response.getPhone());
+        assertEquals(UserRole.DOCTOR, response.getRole());
+        assertEquals("Login successful", response.getMessage());
+
+        assertNotNull(response.getLastLoginAt());
+        assertNotNull(user.getLastLoginAt());
+
+        verify(userRepository).save(user);
+
+        verify(doctorRepository).findByUser_Id(11L);
+
+        verify(patientRepository, never())
+                .findByUser_Id(any(Long.class));
+
+        verify(securityContextRepository).saveContext(
+                any(SecurityContext.class),
+                any(HttpServletRequest.class),
+                any(HttpServletResponse.class)
+        );
     }
 
     @Test
     void shouldFailLoginWhenPasswordIsWrong() {
 
         when(authenticationManager.authenticate(any(Authentication.class)))
-                .thenThrow(new BadCredentialsException("Bad credentials"));
+                .thenThrow(
+                        new BadCredentialsException("Bad credentials")
+                );
 
         assertThrows(
                 BadCredentialsException.class,
@@ -290,5 +377,11 @@ class AuthServiceTest {
                 "01077778888",
                 "123456"
         );
+    }
+
+    private Patient createPatient(Long patientId) {
+        Patient patient = new Patient();
+        patient.setId(patientId);
+        return patient;
     }
 }

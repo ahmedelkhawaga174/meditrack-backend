@@ -4,10 +4,12 @@ import com.meditrack.meditrack_backend.dto.LoginRequest;
 import com.meditrack.meditrack_backend.dto.LoginResponse;
 import com.meditrack.meditrack_backend.dto.RegisterRequest;
 import com.meditrack.meditrack_backend.dto.RegisterResponse;
+import com.meditrack.meditrack_backend.entity.Doctor;
 import com.meditrack.meditrack_backend.entity.Patient;
 import com.meditrack.meditrack_backend.entity.User;
 import com.meditrack.meditrack_backend.enums.UserRole;
 import com.meditrack.meditrack_backend.enums.UserStatus;
+import com.meditrack.meditrack_backend.repository.DoctorRepository;
 import com.meditrack.meditrack_backend.repository.PatientRepository;
 import com.meditrack.meditrack_backend.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +35,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final SecurityContextRepository securityContextRepository;
     private final PatientRepository patientRepository;
+    private final DoctorRepository doctorRepository;
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
 
@@ -44,6 +47,7 @@ public class AuthService {
             UserRepository userRepository,
             SecurityContextRepository securityContextRepository,
             PatientRepository patientRepository,
+            DoctorRepository doctorRepository,
             PasswordEncoder passwordEncoder,
             OtpService otpService
     ) {
@@ -51,6 +55,7 @@ public class AuthService {
         this.userRepository = userRepository;
         this.securityContextRepository = securityContextRepository;
         this.patientRepository = patientRepository;
+        this.doctorRepository = doctorRepository;
         this.passwordEncoder = passwordEncoder;
         this.otpService = otpService;
     }
@@ -93,11 +98,11 @@ public class AuthService {
                         )
                 );
 
-        /// Update last login time
+        // Update last login time
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
-// Get patientId if the logged-in user is a patient
+        // Get patientId if the logged-in user is a patient
         Long patientId = null;
 
         if (user.getRole() == UserRole.PATIENT) {
@@ -111,10 +116,25 @@ public class AuthService {
                     );
         }
 
-// Return login response
+        // Get doctorId if the logged-in user is a doctor
+        Long doctorId = null;
+
+        if (user.getRole() == UserRole.DOCTOR) {
+
+            doctorId = doctorRepository.findByUser_Id(user.getId())
+                    .map(Doctor::getId)
+                    .orElseThrow(() ->
+                            new BadCredentialsException(
+                                    "Doctor profile not found"
+                            )
+                    );
+        }
+
+        // Return login response
         return new LoginResponse(
                 user.getId(),
                 patientId,
+                doctorId,
                 user.getPhone(),
                 user.getRole(),
                 user.getLastLoginAt(),
